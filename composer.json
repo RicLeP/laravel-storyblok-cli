@@ -1,0 +1,50 @@
+{
+    "name": "riclep/laravel-storyblok-cli",
+    "description": "Artisan commands for working with Storyblok",
+    "keywords": [
+        "riclep",
+        "laravel-storyblok-cli",
+        "cli",
+        "storyblok cli",
+        "laravel cli",
+        "artisan storyblok"
+    ],
+    "homepage": "https://github.com/riclep/laravel-storyblok-cli",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Richard Le Poidevin",
+            "email": "ric@sirric.co.uk",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Riclep\\StoryblokCli\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Riclep\\StoryblokCli\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Riclep\\StoryblokCli\\StoryblokCliServiceProvider"
+			]
+		}
+	}
+}
