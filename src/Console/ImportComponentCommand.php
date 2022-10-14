@@ -99,8 +99,10 @@ class ImportComponentCommand extends Command
 		$this->line('Use --as={name} to import as a new component');
 
 		if ($this->hasChanges($importSchema)) {
-			if ($this->confirm('Do you want to update the live schema?', true)) {
-				$response = $this->managementClient->put('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/' . $componentId,
+			if ($this->confirm('Do you want to update the live schema?')) {
+				// TODO - add option to backup existing schema
+
+				$this->managementClient->put('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/' . $componentId,
 					[
 						'component' => $importSchema
 					])->getBody();
