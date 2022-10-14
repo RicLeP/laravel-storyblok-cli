@@ -81,8 +81,6 @@ class ImportComponentCommand extends Command
 		} else {
 			return $this->createComponent($file);
 		}
-
-		$this->info('Component imported successfully: ' . $response['component']['name']);
 	}
 
 	/**
@@ -93,10 +91,15 @@ class ImportComponentCommand extends Command
 	protected function updateComponent($componentId, $file)
 	{
 		if ($this->confirm('Component already exists. Do you want to overwrite it?')) {
-			$this->managementClient->put('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/' . $componentId,
+			$oldComponent = $this->requestComponent($componentId);
+
+			$response = $this->managementClient->put('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/' . $componentId,
 				[
 					'component' => $file
 				])->getBody();
+
+//			dd($oldComponent, $response['component']);
+			dd($oldComponent, $response, array_diff_assoc($oldComponent, $response['component']));
 
 			$this->info('Component updated: ' . $file['name']);
 		} else {
