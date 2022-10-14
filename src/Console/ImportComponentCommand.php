@@ -51,11 +51,14 @@ class ImportComponentCommand extends Command
     {
 		//// TODO validate component JSON
 
+	    if (!Storage::exists($this->argument('file'))) {
+		    $this->error('Component file not found: ' . $this->argument('file'));
+		    exit;
+	    }
+
 		$this->requestComponents();
 
-		$response = $this->importComponent($this->argument('file'));
-
-		$this->info('Component imported successfully: ' . $response['component']['name']);
+		$this->importComponent($this->argument('file'));
 
         return Command::SUCCESS;
     }
@@ -65,33 +68,53 @@ class ImportComponentCommand extends Command
 	 */
 	protected function importComponent($componentFile)
 	{
-		if (!Storage::exists($componentFile)) {
-			$this->error('Component file not found: ' . $componentFile);
-			exit;
-		}
-
 		$file = json_decode(Storage::get($componentFile), true, 512, JSON_THROW_ON_ERROR);
+		unset($file['created_at'], $file['updated_at']);
 
 		if ($this->option('as')) {
 			$file['name'] = $this->option('as');
 			$file['real_name'] = $this->option('as');
 		}
 
-		if ($component = $this->sbComponents->firstWhere('name', $file['name'])) {
-			if ($this->confirm('Component already exists. Do you want to overwrite it?')) {
-				unset($component['created_at'], $component['updated_at']);
-
-				return $this->managementClient->put('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/' . $component['id'], [
-					'component' => $file
-				])->getBody();
-			} else {
-				$this->info('Component not imported. Use --as={name} to create a new component');
-				exit;
-			}
+		if ($this->sbComponents->firstWhere('name', $file['name'])) {
+			return $this->updateComponent($this->sbComponents->firstWhere('name', $file['name'])['id'], $file);
+		} else {
+			return $this->createComponent($file);
 		}
 
-		return $this->managementClient->post('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/', [
+		$this->info('Component imported successfully: ' . $response['component']['name']);
+	}
+
+	/**
+	 * @param $component
+	 * @param $file
+	 * @return void
+	 */
+	protected function updateComponent($componentId, $file)
+	{
+		if ($this->confirm('Component already exists. Do you want to overwrite it?')) {
+			$this->managementClient->put('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/' . $componentId,
+				[
+					'component' => $file
+				])->getBody();
+
+			$this->info('Component updated: ' . $file['name']);
+		} else {
+			$this->info('Component ' . $file['name'] . ' not imported. Use --as={name} to create a new component');
+			exit;
+		}
+	}
+
+	/**
+	 * @param $file
+	 * @return mixed
+	 */
+	private function createComponent($file)
+	{
+		$this->managementClient->post('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/', [
 			'component' => $file
 		])->getBody();
+
+		$this->info('Component created: ' . $file['name']);
 	}
 }

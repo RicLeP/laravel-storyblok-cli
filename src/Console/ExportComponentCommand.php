@@ -17,7 +17,7 @@ class ExportComponentCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ls:export-component {component?}';
+    protected $signature = 'ls:export-component {component?} {--all}';
 
     /**
      * The console command description.
@@ -48,11 +48,13 @@ class ExportComponentCommand extends Command
     {
 		$this->requestComponents();
 
-		$selectedComponent = $this->argument('component') ?: $this->selectComponent();
+		if ($this->option('all')) {
+			$this->exportAllComponents();
+		} else {
+			$selectedComponent = $this->argument('component') ?: $this->selectComponent();
 
-		$this->exportComponent($selectedComponent);
-
-		$this->info('Component exported successfully: ' . $selectedComponent . '.json');
+			$this->exportComponent($selectedComponent);
+		}
 
         return Command::SUCCESS;
     }
@@ -76,8 +78,26 @@ class ExportComponentCommand extends Command
 			exit;
 		}
 
+		if (Storage::exists($componentName . '.json') && !$this->option('all')) {
+			if (!$this->confirm($componentName . '.json already exists. Do you want to overwrite it?')) {
+				$this->info('Component not exported.');
+				exit;
+			}
+		}
+
 		Storage::put($componentName . '.json', json_encode($component, JSON_THROW_ON_ERROR));
 
+		$this->info($componentName . '.json exported');
+
 		return $component;
+	}
+
+	protected function exportAllComponents()
+	{
+		if ($this->confirm('This will overwrite previously exported components. Do you want to continue?')) {
+			$this->sbComponents->each(function ($component) {
+				$this->exportComponent($component['name']);
+			});
+		}
 	}
 }
