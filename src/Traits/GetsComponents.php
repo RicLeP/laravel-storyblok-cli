@@ -16,4 +16,11 @@ trait GetsComponents
 		$this->sbComponents = collect($response['components']);
 		$this->componentGroups = collect($response['component_groups']);
 	}
+
+	protected function requestComponent($componentId)
+	{
+		$response = $this->managementClient->get('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/' . $componentId)->getBody();
+
+		return $response['component'];
+	}
 }
