@@ -37,7 +37,7 @@ class ImportComponentCommand extends Command
 	{
 		parent::__construct();
 
-		$this->managementClient = new ManagementClient(env('STORYBLOK_OAUTH_TOKEN'));
+		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
 
 	/**
@@ -102,7 +102,7 @@ class ImportComponentCommand extends Command
 			if ($this->confirm('Do you want to update the live schema?')) {
 				// TODO - add option to backup existing schema
 
-				$this->managementClient->put('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/' . $componentId,
+				$this->managementClient->put('spaces/' . config('storyblok-cli.space_id') . '/components/' . $componentId,
 					[
 						'component' => $importSchema
 					])->getBody();
@@ -121,7 +121,7 @@ class ImportComponentCommand extends Command
 	 */
 	protected function createComponent($importSchema)
 	{
-		$this->managementClient->post('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/', [
+		$this->managementClient->post('spaces/' . config('storyblok-cli.space_id') . '/components/', [
 			'component' => $importSchema
 		])->getBody();
 
