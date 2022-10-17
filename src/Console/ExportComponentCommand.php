@@ -35,7 +35,7 @@ class ExportComponentCommand extends Command
 	{
 		parent::__construct();
 
-		$this->managementClient = new ManagementClient(env('STORYBLOK_OAUTH_TOKEN'));
+		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
 
 	/**

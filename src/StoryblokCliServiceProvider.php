@@ -18,4 +18,12 @@ class StoryblokCliServiceProvider extends ServiceProvider
 			ImportComponentCommand::class,
 		]);
     }
+
+	/**
+	 * @return void
+	 */
+	public function register()
+	{
+		$this->mergeConfigFrom(__DIR__.'/../config/storyblok-cli.php', 'storyblok-cli');
+	}
 }
