@@ -3,7 +3,7 @@
 namespace Riclep\StoryblokCli;
 
 use Illuminate\Support\ServiceProvider;
-use RicLep\StoryblokCli\Console\DiffComponentCommand;
+use Riclep\StoryblokCli\Console\DiffComponentCommand;
 use Riclep\StoryblokCli\Console\ExportComponentCommand;
 use Riclep\StoryblokCli\Console\ImportComponentCommand;
 

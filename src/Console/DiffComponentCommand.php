@@ -1,6 +1,6 @@
 <?php
 
-namespace RicLep\StoryblokCli\Console;
+namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +18,7 @@ class DiffComponentCommand extends Command
 	 *
 	 * @var string
 	 */
-	protected $signature = 'ls:diff-component {file?}';
+	protected $signature = 'ls:diff-component {file}';
 
 	/**
 	 * The console command description.
@@ -50,7 +50,6 @@ class DiffComponentCommand extends Command
 	public function handle(): int
 	{
 		//// TODO validate component JSON
-
 		if (!$this->argument('file')) {
 			$this->error('No component file specified');
 			exit;
@@ -61,13 +60,12 @@ class DiffComponentCommand extends Command
 			exit;
 		}
 
+		$this->requestComponents();
+
 		$this->diff($this->argument('file'));
 
 		return Command::SUCCESS;
 	}
-
-
-
 
 	/**
 	 * @param $importSchema
@@ -76,8 +74,8 @@ class DiffComponentCommand extends Command
 	 */
 	protected function diff($localComponent)
 	{
-
 		$localSchema = json_decode(Storage::get($localComponent), true, 512, JSON_THROW_ON_ERROR);
+		unset($localSchema['created_at'], $localSchema['updated_at']);
 
 		$remoteSchema = $this->requestComponent($this->sbComponents->firstWhere('name', $localSchema['name'])['id']);
 		unset($remoteSchema['created_at'], $remoteSchema['updated_at']);
@@ -98,6 +96,5 @@ class DiffComponentCommand extends Command
 		$this->info('Changes found:');
 
 		dump($changes);
-		return true;
 	}
 }
