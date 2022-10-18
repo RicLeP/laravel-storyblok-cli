@@ -1,6 +1,6 @@
 <?php
 
-namespace RicLep\StoryblokCli\Console;
+namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -98,20 +98,22 @@ class ImportComponentCommand extends Command
 		$this->warn('Component already exists: ' . $importSchema['name'] . '.');
 		$this->line('Use --as={name} to import as a new component');
 
-		if ($this->hasChanges($importSchema)) {
-			if ($this->confirm('Do you want to update the live schema?')) {
-				// TODO - add option to backup existing schema
+		$this->call('ls:diff-component', [
+			'file' => $this->argument('file'),
+		]);
 
-				$this->managementClient->put('spaces/' . config('storyblok-cli.space_id') . '/components/' . $componentId,
-					[
-						'component' => $importSchema
-					])->getBody();
+		if ($this->confirm('Do you want to update the live schema?')) {
+			// TODO - add option to backup existing schema
 
-				$this->info('Component updated: ' . $importSchema['name']);
-			} else {
-				$this->info('Component ' . $importSchema['name'] . ' not imported.');
-				exit;
-			}
+			$this->managementClient->put('spaces/' . config('storyblok-cli.space_id') . '/components/' . $componentId,
+				[
+					'component' => $importSchema
+				])->getBody();
+
+			$this->info('Component updated: ' . $importSchema['name']);
+		} else {
+			$this->info('Component ' . $importSchema['name'] . ' not imported.');
+			exit;
 		}
 	}
 
