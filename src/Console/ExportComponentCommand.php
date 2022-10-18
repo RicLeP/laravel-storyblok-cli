@@ -87,7 +87,7 @@ class ExportComponentCommand extends Command
 
 		Storage::put($componentName . '.json', json_encode($component, JSON_THROW_ON_ERROR));
 
-		$this->info($componentName . '.json exported');
+		$this->info('Saved to storage: ' . $componentName . '.json');
 
 		return $component;
 	}
