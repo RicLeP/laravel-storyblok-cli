@@ -19,7 +19,7 @@ class ImportComponentCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ls:import-component {file?} {--as=} {--group=null}';
+    protected $signature = 'ls:import-component {file?} {--as=} {--group=false}';
 
     /**
      * The console command description.
@@ -82,7 +82,11 @@ class ImportComponentCommand extends Command
 			$importSchema['real_name'] = $this->option('as');
 		}
 
-		$importSchema = $this->setComponentGroup($importSchema);
+		// don’t like this but not sure how to have a default value which prompts for a choice and
+		// is skipped when now passed as an option
+		if ($this->option('group') !== 'false') {
+			$importSchema = $this->setComponentGroup($importSchema);
+		}
 
 		if ($this->sbComponents->firstWhere('name', $importSchema['name'])) {
 			return $this->updateComponent(
