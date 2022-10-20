@@ -4,6 +4,7 @@ namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use JsonException;
 use Riclep\StoryblokCli\Traits\GetsComponents;
 use Storyblok\ApiException;
@@ -18,7 +19,7 @@ class ImportComponentCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ls:import-component {file?} {--as=}';
+    protected $signature = 'ls:import-component {file?} {--as=} {--group=null}';
 
     /**
      * The console command description.
@@ -81,11 +82,41 @@ class ImportComponentCommand extends Command
 			$importSchema['real_name'] = $this->option('as');
 		}
 
+		$importSchema = $this->setComponentGroup($importSchema);
+
 		if ($this->sbComponents->firstWhere('name', $importSchema['name'])) {
-			return $this->updateComponent($this->sbComponents->firstWhere('name', $importSchema['name'])['id'], $importSchema);
+			return $this->updateComponent(
+				$this->sbComponents
+					->firstWhere('name', $importSchema['name'])['id'], $importSchema
+			);
 		} else {
 			return $this->createComponent($importSchema);
 		}
+	}
+
+	protected function setComponentGroup($importSchema)
+	{
+		if ($this->option('group') === null) {
+			$componentGroupName = $this->choice(
+				'Select components to export',
+				$this->sbComponentGroups->pluck('name')->toArray()
+			);
+
+			$group = $this->sbComponentGroups->filter(fn($group) => $group['name'] === $componentGroupName)->first();
+		} else if (Str::isUuid($this->option('group'))) {
+			$group = $this->sbComponentGroups->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
+		} else {
+			$group = $this->sbComponentGroups->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
+		}
+
+		if (!$group) {
+			$this->error('Component group not found');
+			exit;
+		}
+
+		$importSchema['component_group_uuid'] = $group['uuid'];
+
+		return $importSchema;
 	}
 
 	/**

@@ -75,10 +75,10 @@ class DiffComponentCommand extends Command
 	protected function diff($localComponent)
 	{
 		$localSchema = json_decode(Storage::get($localComponent), true, 512, JSON_THROW_ON_ERROR);
-		unset($localSchema['created_at'], $localSchema['updated_at']);
+		unset($localSchema['created_at'], $localSchema['updated_at'], $localSchema['component_group_uuid']);
 
 		$remoteSchema = $this->requestComponent($this->sbComponents->firstWhere('name', $localSchema['name'])['id']);
-		unset($remoteSchema['created_at'], $remoteSchema['updated_at']);
+		unset($remoteSchema['created_at'], $remoteSchema['updated_at'], $remoteSchema['component_group_uuid']);
 
 		$treeWalker = new \TreeWalker(['returntype' => 'array']);
 		$changes = $treeWalker->getdiff(
