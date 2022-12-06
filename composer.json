@@ -22,7 +22,7 @@
     "require": {
         "php": "^8.0",
 	    "lukascivil/treewalker": "^0.9.1",
-	    "storyblok/php-client": "v2.2.0"
+	    "storyblok/php-client": "^2.2"
     },
     "autoload": {
         "psr-4": {
