@@ -11,9 +11,16 @@ trait GetsComponents
 
 	protected function requestComponents()
 	{
-		$response = $this->managementClient->get('spaces/' . env('STORYBLOK_SPACE_ID') . '/components/')->getBody();
+		$response = $this->managementClient->get('spaces/' . config('storyblok-cli.space_id') . '/components/')->getBody();
 
 		$this->sbComponents = collect($response['components']);
-		$this->componentGroups = collect($response['component_groups']);
+		$this->sbComponentGroups = collect($response['component_groups']);
+	}
+
+	protected function requestComponent($componentId)
+	{
+		$response = $this->managementClient->get('spaces/' . config('storyblok-cli.space_id') . '/components/' . $componentId)->getBody();
+
+		return $response['component'];
 	}
 }
