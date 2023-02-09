@@ -1,10 +1,10 @@
-# Laravel Storyblok - CLI helper plugin
+# Laravel Storyblok - Artisan CLI
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/riclep/laravel-storyblok-cli.svg?style=flat-square)](https://packagist.org/packages/riclep/laravel-storyblok-cli)
 [![Total Downloads](https://img.shields.io/packagist/dt/riclep/laravel-storyblok-cli.svg?style=flat-square)](https://packagist.org/packages/riclep/laravel-storyblok-cli)
 ![GitHub Actions](https://github.com/riclep/laravel-storyblok-cli/actions/workflows/main.yml/badge.svg)
 
-A CLI for working with the Storyblok API in Laravel.
+Artisan commands for working with the Storyblok API in Laravel.
 
 ## Installation
 
