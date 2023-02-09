@@ -21,6 +21,8 @@ class ImportComponentCommand extends Command
      */
     protected $signature = 'ls:import-component {file?} {--as=} {--group=false}';
 
+	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
+
     /**
      * The console command description.
      *
@@ -57,7 +59,7 @@ class ImportComponentCommand extends Command
 		    exit;
 	    }
 
-	    if (!Storage::exists($this->argument('file'))) {
+	    if (!Storage::exists($this->storagePath . $this->argument('file'))) {
 		    $this->error('Component file not found: ' . $this->argument('file'));
 		    exit;
 	    }
@@ -74,7 +76,7 @@ class ImportComponentCommand extends Command
 	 */
 	protected function importComponent($componentFile)
 	{
-		$importSchema = json_decode(Storage::get($componentFile), true, 512, JSON_THROW_ON_ERROR);
+		$importSchema = json_decode(Storage::get($this->storagePath . $componentFile), true, 512, JSON_THROW_ON_ERROR);
 		unset($importSchema['created_at'], $importSchema['updated_at']);
 
 		if ($this->option('as')) {

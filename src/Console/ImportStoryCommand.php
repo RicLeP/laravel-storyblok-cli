@@ -22,6 +22,8 @@ class ImportStoryCommand extends Command
      */
     protected $description = 'Import a story from JSON - it will be created in your space’s root';
 
+	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'stories' . DIRECTORY_SEPARATOR;
+
 	/**
 	 * Create a new command instance.
 	 *
@@ -48,7 +50,7 @@ class ImportStoryCommand extends Command
 	    ])->getBody()['stories'];
 
 		if (!$storyExists) {
-			$source = json_decode(Storage::get($this->argument('filename')), true);
+			$source = json_decode(Storage::get($this->storagePath . $this->argument('filename')), true);
 
 			$story = [
 				"story" =>  [

@@ -23,6 +23,8 @@ class ExportStoryCommand extends Command
      */
     protected $description = 'Save a story as JSON';
 
+	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'stories' . DIRECTORY_SEPARATOR;
+
 	/**
 	 * Create a new command instance.
 	 *
@@ -46,14 +48,21 @@ class ExportStoryCommand extends Command
 			'with_slug' => $this->argument('slug')
 	    ])->getBody()['stories'];
 
-		if ($storyExists) {
-			$filename = 'storyblok-' . Str::of($this->argument('slug'))->replace('/', '-')->slug() . '.json';
+	    if ($storyExists) {
+			$filename = Str::of($this->argument('slug'))->replace('/', '-')->slug() . '.json';
+
+			if (Storage::exists($this->storagePath . $filename)) {
+				if (!$this->confirm($filename . ' already exists. Do you want to overwrite it?')) {
+					$this->info('Component not exported.');
+					exit;
+				}
+			}
 
 			$story = $this->client->get('spaces/' . config('storyblok-cli.space_id') . '/stories/' . $storyExists[0]['id'])->getBody();
 
-			$json = json_encode($story);
+			$json = json_encode($story, JSON_PRETTY_PRINT);
 
-			Storage::put($filename, $json);
+			Storage::put($this->storagePath . $filename, $json);
 
 			$this->info('Saved to storage: ' . $filename);
 		} else {

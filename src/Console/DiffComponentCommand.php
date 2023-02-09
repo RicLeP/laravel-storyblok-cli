@@ -27,6 +27,8 @@ class DiffComponentCommand extends Command
 	 */
 	protected $description = 'Diff components from JSON definitions';
 
+	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
+
 	/**
 	 * @var ManagementClient
 	 */
@@ -55,14 +57,14 @@ class DiffComponentCommand extends Command
 			exit;
 		}
 
-		if (!Storage::exists($this->argument('file'))) {
+		if (!Storage::exists($this->storagePath . $this->argument('file'))) {
 			$this->error('Component file not found: ' . $this->argument('file'));
 			exit;
 		}
 
 		$this->requestComponents();
 
-		$this->diff($this->argument('file'));
+		$this->diff($this->storagePath . $this->argument('file'));
 
 		return Command::SUCCESS;
 	}
