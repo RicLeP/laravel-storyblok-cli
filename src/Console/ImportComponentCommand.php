@@ -86,8 +86,10 @@ class ImportComponentCommand extends Command
 
 		// don’t like this but not sure how to have a default value which prompts for a choice and
 		// is skipped when now passed as an option
-		if ($this->option('group') !== 'false') {
+		if ($this->option('group') && $this->option('group') !== 'false') {
 			$importSchema = $this->setComponentGroup($importSchema);
+		} else {
+			$importSchema = $this->selectComponentGroup($importSchema);
 		}
 
 		if ($this->sbComponents->firstWhere('name', $importSchema['name'])) {
@@ -100,16 +102,41 @@ class ImportComponentCommand extends Command
 		}
 	}
 
+	protected function selectComponentGroup($importSchema)
+	{
+		$componentGroups = clone $this->sbComponentGroups;
+
+		$componentGroups->prepend([
+			'name' => 'Root group',
+		])->prepend([
+			'name' => 'New group',
+		]);
+
+		$componentGroupName = $this->choice(
+			'Add component to group: ',
+			$componentGroups->pluck('name')->toArray()
+		);
+
+		if ($componentGroupName === 'New group') {
+			$componentGroupName = $this->createComponentGroup();
+		}
+
+		if ($componentGroupName === 'Root group') {
+			$importSchema['component_group_uuid'] = null;
+
+			return $importSchema;
+		}
+
+		$group = $this->sbComponentGroups->filter(fn($group) => $group['name'] === $componentGroupName)->first();
+
+		$importSchema['component_group_uuid'] = $group['uuid'];
+
+		return $importSchema;
+	}
+
 	protected function setComponentGroup($importSchema)
 	{
-		if ($this->option('group') === null) {
-			$componentGroupName = $this->choice(
-				'Select components to export',
-				$this->sbComponentGroups->pluck('name')->toArray()
-			);
-
-			$group = $this->sbComponentGroups->filter(fn($group) => $group['name'] === $componentGroupName)->first();
-		} else if (Str::isUuid($this->option('group'))) {
+		if (Str::isUuid($this->option('group'))) {
 			$group = $this->sbComponentGroups->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
 		} else {
 			$group = $this->sbComponentGroups->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
@@ -119,10 +146,25 @@ class ImportComponentCommand extends Command
 			$this->error('Component group not found');
 			exit;
 		}
-
 		$importSchema['component_group_uuid'] = $group['uuid'];
 
 		return $importSchema;
+	}
+
+	protected function createComponentGroup()
+	{
+		$componentGroupName = $this->ask('Enter new group name: ');
+
+		$this->managementClient->post('spaces/' . config('storyblok-cli.space_id') . '/component_groups',
+			[
+				'component_group' => [
+					'name' => $componentGroupName,
+				]
+			])->getBody();
+
+		$this->requestComponents();
+
+		return $componentGroupName;
 	}
 
 	/**
@@ -132,14 +174,14 @@ class ImportComponentCommand extends Command
 	 */
 	protected function updateComponent($componentId, $importSchema)
 	{
-		$this->warn('Component already exists: ' . $importSchema['name'] . '.');
+		$this->warn('Component already exists: ' . $importSchema['name']);
 		$this->line('Use --as={name} to import as a new component');
 
 		$this->call('ls:diff-component', [
 			'file' => $this->argument('file'),
 		]);
 
-		if ($this->confirm('Do you want to update the live schema?')) {
+		if ($this->confirm('Do you want to update the component in Storyblok?')) {
 			// TODO - add option to backup existing schema
 
 			$this->managementClient->put('spaces/' . config('storyblok-cli.space_id') . '/components/' . $componentId,
@@ -149,7 +191,7 @@ class ImportComponentCommand extends Command
 
 			$this->info('Component updated: ' . $importSchema['name']);
 		} else {
-			$this->info('Component ' . $importSchema['name'] . ' not imported.');
+			$this->info('Component not imported.');
 			exit;
 		}
 	}
