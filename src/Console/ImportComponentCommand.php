@@ -107,15 +107,15 @@ class ImportComponentCommand extends Command
 		$componentGroups = clone $this->sbComponentGroups;
 
 		$componentGroups->prepend([
-			'name' => 'Root group',
+			'name' => '<fg=green>Root group</>',
 		])->prepend([
-			'name' => 'New group',
+			'name' => '<fg=green>New group</>',
 		]);
 
-		$componentGroupName = $this->choice(
-			'Add component to group: ',
+		$componentGroupName = strip_tags($this->choice(
+			'Add component to group',
 			$componentGroups->pluck('name')->toArray()
-		);
+		));
 
 		if ($componentGroupName === 'New group') {
 			$componentGroupName = $this->createComponentGroup();
@@ -146,6 +146,7 @@ class ImportComponentCommand extends Command
 			$this->error('Component group not found');
 			exit;
 		}
+
 		$importSchema['component_group_uuid'] = $group['uuid'];
 
 		return $importSchema;
@@ -153,7 +154,7 @@ class ImportComponentCommand extends Command
 
 	protected function createComponentGroup()
 	{
-		$componentGroupName = $this->ask('Enter new group name: ');
+		$componentGroupName = $this->ask('Enter new group name');
 
 		$this->managementClient->post('spaces/' . config('storyblok-cli.space_id') . '/component_groups',
 			[
