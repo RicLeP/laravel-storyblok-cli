@@ -26,6 +26,8 @@ class ExportComponentCommand extends Command
      */
     protected $description = 'Export the JSON for components';
 
+	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
+
 	/**
 	 * @var ManagementClient
 	 */
@@ -78,14 +80,14 @@ class ExportComponentCommand extends Command
 			exit;
 		}
 
-		if (Storage::exists($componentName . '.json') && !$this->option('all')) {
+		if (Storage::exists($this->storagePath . $componentName . '.json') && !$this->option('all')) {
 			if (!$this->confirm($componentName . '.json already exists. Do you want to overwrite it?')) {
 				$this->info('Component not exported.');
 				exit;
 			}
 		}
 
-		Storage::put($componentName . '.json', json_encode($component, JSON_THROW_ON_ERROR));
+		Storage::put($this->storagePath . $componentName . '.json', json_encode($component, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
 
 		$this->info('Saved to storage: ' . $componentName . '.json');
 
