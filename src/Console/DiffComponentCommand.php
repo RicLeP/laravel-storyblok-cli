@@ -18,7 +18,7 @@ class DiffComponentCommand extends Command
 	 *
 	 * @var string
 	 */
-	protected $signature = 'ls:diff-component {file}';
+	protected $signature = 'ls:diff-component {file} {remote?}';
 
 	/**
 	 * The console command description.
@@ -64,7 +64,7 @@ class DiffComponentCommand extends Command
 
 		$this->requestComponents();
 
-		$this->diff($this->storagePath . $this->argument('file'));
+		$this->diff($this->storagePath . $this->argument('file'), $this->argument('remote'));
 
 		return Command::SUCCESS;
 	}
@@ -74,13 +74,11 @@ class DiffComponentCommand extends Command
 	 * @return void
 	 * @throws JsonException
 	 */
-	protected function diff($localComponent)
+	protected function diff($localComponent, $remoteComponent = null)
 	{
-		$localSchema = json_decode(Storage::get($localComponent), true, 512, JSON_THROW_ON_ERROR);
-		unset($localSchema['created_at'], $localSchema['updated_at'], $localSchema['component_group_uuid']);
+		$localSchema = $this->cleanSchema(json_decode(Storage::get($localComponent), true, 512, JSON_THROW_ON_ERROR));
 
-		$remoteSchema = $this->requestComponent($this->sbComponents->firstWhere('name', $localSchema['name'])['id']);
-		unset($remoteSchema['created_at'], $remoteSchema['updated_at'], $remoteSchema['component_group_uuid']);
+		$remoteSchema = $this->cleanSchema($this->requestComponent($this->sbComponents->firstWhere('name', $remoteComponent ?? $localSchema['name'])['id']));
 
 		$treeWalker = new \TreeWalker(['returntype' => 'array']);
 		$changes = $treeWalker->getdiff(
@@ -95,8 +93,15 @@ class DiffComponentCommand extends Command
 		}
 
 		$this->line('');
-		$this->info('Changes found:');
+		$this->info('Differences in remote schema:');
 
 		dump($changes);
+	}
+
+	protected function cleanSchema($schema)
+	{
+		unset($schema['id'],$schema['created_at'], $schema['updated_at'], $schema['component_group_uuid'], $schema['name'], $schema['real_name']);
+
+		return $schema;
 	}
 }

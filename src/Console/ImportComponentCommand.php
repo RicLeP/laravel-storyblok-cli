@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use JsonException;
 use Riclep\StoryblokCli\ReadsComponents;
+use Riclep\StoryblokCli\WritesComponentJson;
 use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
@@ -33,14 +34,14 @@ class ImportComponentCommand extends Command
 	 */
 	protected ManagementClient $managementClient;
 
-	protected ReadsComponents $getsComponents;
+	protected $componentReader;
 
 
-	public function __construct(ReadsComponents $getsComponents)
+	public function __construct(ReadsComponents $ReadsComponents)
 	{
 
 		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
-		$this->getsComponents = $getsComponents;
+		$this->componentReader = $ReadsComponents;
 
 		parent::__construct();
 	}
@@ -66,52 +67,52 @@ class ImportComponentCommand extends Command
 		    exit;
 	    }
 
-		$this->getsComponents->requestAll();
+		$this->componentReader->requestAll();
 
-		$this->importComponent($this->argument('file'));
+	    $this->importComponent(new WritesComponentJson(Storage::get($this->storagePath . $this->argument('file'))));
 
-        return Command::SUCCESS;
+
+	    return Command::SUCCESS;
     }
 
 	/**
 	 * @throws JsonException|ApiException
 	 */
-	protected function importComponent($componentFile)
+	protected function importComponent(WritesComponentJson $componentWriter)
 	{
-		$importSchema = json_decode(Storage::get($this->storagePath . $componentFile), true, 512, JSON_THROW_ON_ERROR);
-		unset($importSchema['created_at'], $importSchema['updated_at']);
-
 		if ($this->option('as')) {
-//			$importSchema['name'] = $this->option('as');
-//			$importSchema['real_name'] = $this->option('as');
+			$componentWriter->name($this->option('as'));
 		}
 
 		// don’t like this but not sure how to have a default value which prompts for a choice and
 		// is skipped when now passed as an option
 		if ($this->option('group') && $this->option('group') !== 'false') {
-			$importSchema = $this->setComponentGroup($importSchema);
+			$componentWriter->group($this->getComponentGroup());
 		} else {
-			$importSchema = $this->selectComponentGroup($importSchema);
+			$componentWriter->group($this->selectComponentGroup($this->componentReader->find($componentWriter->getName())['component_group_uuid']));
 		}
 
-		if ($this->sbComponents->firstWhere('name', $importSchema['name'])) {
+		if ($component = $this->componentReader->find($componentWriter->getName())) {
 			return $this->updateComponent(
-				$this->sbComponents
-					->firstWhere('name', $importSchema['name'])['id'], $importSchema
+				$component['id'], $componentWriter->toArray()
 			);
 		} else {
-			return $this->createComponent($importSchema);
+			return $this->createComponent($componentWriter->toArray());
 		}
 	}
 
-	protected function selectComponentGroup($importSchema)
+	protected function selectComponentGroup($existingGroupUuid)
 	{
-		$componentGroups = clone $this->sbComponentGroups;
+		$componentGroups = clone $this->componentReader->groups();
+
+		// TODO print the group it’s already in
 
 		$componentGroups->prepend([
 			'name' => '<fg=green>Root group</>',
 		])->prepend([
 			'name' => '<fg=green>New group</>',
+		])->prepend([
+			'name' => '<fg=green>Keep group</>',
 		]);
 
 		$componentGroupName = strip_tags($this->choice(
@@ -119,29 +120,30 @@ class ImportComponentCommand extends Command
 			$componentGroups->pluck('name')->toArray()
 		));
 
+		// TODO - keep UUID from JSON if compontent is not in Storyblok already
+		if ($componentGroupName === 'Keep group') {
+			return $existingGroupUuid;
+		}
+
 		if ($componentGroupName === 'New group') {
 			$componentGroupName = $this->createComponentGroup();
 		}
 
 		if ($componentGroupName === 'Root group') {
-			$importSchema['component_group_uuid'] = null;
-
-			return $importSchema;
+			return null;
 		}
 
-		$group = $this->getsComponents->groups()->filter(fn($group) => $group['name'] === $componentGroupName)->first();
+		$group = $this->componentReader->groups()->filter(fn($group) => $group['name'] === $componentGroupName)->first();
 
-		$importSchema['component_group_uuid'] = $group['uuid'];
-
-		return $importSchema;
+		return $group['uuid'];
 	}
 
-	protected function setComponentGroup($importSchema)
+	protected function getComponentGroup()
 	{
 		if (Str::isUuid($this->option('group'))) {
-			$group = $this->getsComponents->groups()->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
+			$group = $this->componentReader->groups()->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
 		} else {
-			$group = $this->getsComponents->groups()->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
+			$group = $this->componentReader->groups()->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
 		}
 
 		if (!$group) {
@@ -149,9 +151,7 @@ class ImportComponentCommand extends Command
 			exit;
 		}
 
-		$importSchema['component_group_uuid'] = $group['uuid'];
-
-		return $importSchema;
+		return $group['uuid'];
 	}
 
 	protected function createComponentGroup()
@@ -165,7 +165,7 @@ class ImportComponentCommand extends Command
 				]
 			])->getBody();
 
-		$this->requestComponents();
+		$this->componentReader->requestAll();
 
 		return $componentGroupName;
 	}
@@ -182,6 +182,7 @@ class ImportComponentCommand extends Command
 
 		$this->call('ls:diff-component', [
 			'file' => $this->argument('file'),
+			'remote' => $importSchema['name'],
 		]);
 
 		if ($this->confirm('Do you want to update the component in Storyblok?')) {
@@ -210,34 +211,5 @@ class ImportComponentCommand extends Command
 		])->getBody();
 
 		$this->info('Component created: ' . $importSchema['name']);
-	}
-
-	/**
-	 * @param $importSchema
-	 * @return void
-	 * @throws JsonException
-	 */
-	protected function hasChanges($importSchema)
-	{
-		$existingSchema = $this->getCompnents()->requestById($this->sbComponents->firstWhere('name', $importSchema['name'])['id']);
-		unset($existingSchema['created_at'], $existingSchema['updated_at']);
-
-		$treeWalker = new \TreeWalker(['returntype' => 'array']);
-		$changes = $treeWalker->getdiff(
-			json_encode($importSchema, JSON_THROW_ON_ERROR),
-			json_encode($existingSchema, JSON_THROW_ON_ERROR)
-		);
-
-		if (empty(array_filter($changes))) {
-			$this->info('No changes found, import cancelled');
-
-			return false;
-		}
-
-		$this->line('');
-		$this->info('Changes found:');
-
-		dump($changes);
-		return true;
 	}
 }

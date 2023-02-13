@@ -75,7 +75,7 @@ class ExportComponentCommand extends Command
 	 */
 	protected function exportComponent($componentName)
 	{
-		$component = $this->componentReader->selectByName($componentName);
+		$component = $this->componentReader->find($componentName);
 
 		if (Storage::exists($this->storagePath . $componentName . '.json') && !$this->option('all')) {
 			if (!$this->confirm($componentName . '.json already exists. Do you want to overwrite it?')) {

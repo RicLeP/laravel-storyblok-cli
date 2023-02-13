@@ -58,15 +58,8 @@ class ReadsComponents
 	}
 
 	// TODO update to use ID or UUID instead?
-	public function selectByName($componentName)
-	{
+	public function find($componentName) {
 		$component = $this->components->filter(fn($value) => $value['name'] === $componentName)->first();
-
-		// TODO - throw exception
-		if (!$component) {
-			$this->error('Component ' . $componentName . ' not found');
-			exit;
-		}
 
 		return $component;
 	}

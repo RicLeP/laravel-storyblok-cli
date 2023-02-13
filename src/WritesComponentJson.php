@@ -12,6 +12,12 @@ class WritesComponentJson
 	public function __construct($json)
 	{
 		$this->json = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+		$this->cleanJson();
+	}
+
+	public function cleanJson() {
+		unset($this->json['created_at'], $this->json['updated_at']);
 	}
 
 	public function name($name)
@@ -21,16 +27,20 @@ class WritesComponentJson
 		return $this;
 	}
 
+	public function getName() {
+		return $this->json['name'];
+	}
+
 	/**
 	 * @throws InvalidArgumentException
 	 */
 	public function group($group)
 	{
-		if (Str::isUuid($group)) {
+		if (is_null($group) || Str::isUuid($group)) {
 			$this->json['component_group_uuid'] = $group;
 			return $this;
 		} else {
-			throw new InvalidArgumentException ('Expected component group UUID');
+			throw new InvalidArgumentException ('Expected component group UUID or null, got ' . $group . ' instead.');
 		}
 	}
 
