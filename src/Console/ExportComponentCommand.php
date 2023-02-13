@@ -31,13 +31,13 @@ class ExportComponentCommand extends Command
 	 */
 	protected ManagementClient $managementClient;
 
-	protected $components;
+	protected $componentReader;
 
 	public function __construct(ReadsComponents $ReadsComponents)
 	{
 		parent::__construct();
 
-		$this->components = $ReadsComponents;
+		$this->componentReader = $ReadsComponents;
 
 		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
@@ -50,7 +50,7 @@ class ExportComponentCommand extends Command
 	 */
     public function handle(): int
     {
-		$this->components->requestAll();
+		$this->componentReader->requestAll();
 
 		if ($this->option('all')) {
 			$this->exportAllComponents();
@@ -66,7 +66,7 @@ class ExportComponentCommand extends Command
 	protected function selectComponent() {
 		return $this->choice(
 			'Select component to export',
-			$this->components->listByName()->toArray()
+			$this->componentReader->listByName()->toArray()
 		);
 	}
 
@@ -75,7 +75,7 @@ class ExportComponentCommand extends Command
 	 */
 	protected function exportComponent($componentName)
 	{
-		$component = $this->components->selectByName($componentName);
+		$component = $this->componentReader->selectByName($componentName);
 
 		if (Storage::exists($this->storagePath . $componentName . '.json') && !$this->option('all')) {
 			if (!$this->confirm($componentName . '.json already exists. Do you want to overwrite it?')) {
@@ -94,7 +94,7 @@ class ExportComponentCommand extends Command
 	protected function exportAllComponents()
 	{
 		if ($this->confirm('This will overwrite previously exported components. Do you want to continue?')) {
-			$this->components->components()->each(function ($component) {
+			$this->componentReader->components()->each(function ($component) {
 				$this->exportComponent($component['name']);
 			});
 		}
