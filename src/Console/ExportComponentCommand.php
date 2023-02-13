@@ -5,13 +5,11 @@ namespace Riclep\StoryblokCli\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use JsonException;
-use Riclep\StoryblokCli\Traits\GetsComponents;
+use Riclep\StoryblokCli\ReadsComponents;
 use Storyblok\ManagementClient;
 
 class ExportComponentCommand extends Command
 {
-	use GetsComponents;
-
     /**
      * The name and signature of the console command.
      *
@@ -33,9 +31,13 @@ class ExportComponentCommand extends Command
 	 */
 	protected ManagementClient $managementClient;
 
-	public function __construct()
+	protected $components;
+
+	public function __construct(ReadsComponents $ReadsComponents)
 	{
 		parent::__construct();
+
+		$this->components = $ReadsComponents;
 
 		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
@@ -48,7 +50,7 @@ class ExportComponentCommand extends Command
 	 */
     public function handle(): int
     {
-		$this->requestComponents();
+		$this->components->requestAll();
 
 		if ($this->option('all')) {
 			$this->exportAllComponents();
@@ -63,8 +65,8 @@ class ExportComponentCommand extends Command
 
 	protected function selectComponent() {
 		return $this->choice(
-			'Select components to export',
-			$this->sbComponents->pluck('name')->toArray()
+			'Select component to export',
+			$this->components->listByName()->toArray()
 		);
 	}
 
@@ -73,12 +75,7 @@ class ExportComponentCommand extends Command
 	 */
 	protected function exportComponent($componentName)
 	{
-		$component = $this->sbComponents->filter(fn($value) => $value['name'] === $componentName)->first();
-
-		if (!$component) {
-			$this->error('Component ' . $componentName . ' not found');
-			exit;
-		}
+		$component = $this->components->selectByName($componentName);
 
 		if (Storage::exists($this->storagePath . $componentName . '.json') && !$this->option('all')) {
 			if (!$this->confirm($componentName . '.json already exists. Do you want to overwrite it?')) {
@@ -97,7 +94,7 @@ class ExportComponentCommand extends Command
 	protected function exportAllComponents()
 	{
 		if ($this->confirm('This will overwrite previously exported components. Do you want to continue?')) {
-			$this->sbComponents->each(function ($component) {
+			$this->components->components()->each(function ($component) {
 				$this->exportComponent($component['name']);
 			});
 		}

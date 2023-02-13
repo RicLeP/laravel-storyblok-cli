@@ -6,14 +6,12 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use JsonException;
-use Riclep\StoryblokCli\Traits\GetsComponents;
+use Riclep\StoryblokCli\ReadsComponents;
 use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
 class ImportComponentCommand extends Command
 {
-	use GetsComponents;
-
     /**
      * The name and signature of the console command.
      *
@@ -35,12 +33,16 @@ class ImportComponentCommand extends Command
 	 */
 	protected ManagementClient $managementClient;
 
+	protected ReadsComponents $getsComponents;
 
-	public function __construct()
+
+	public function __construct(ReadsComponents $getsComponents)
 	{
-		parent::__construct();
 
 		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
+		$this->getsComponents = $getsComponents;
+
+		parent::__construct();
 	}
 
 	/**
@@ -64,7 +66,7 @@ class ImportComponentCommand extends Command
 		    exit;
 	    }
 
-		$this->requestComponents();
+		$this->getsComponents->requestAll();
 
 		$this->importComponent($this->argument('file'));
 
@@ -80,8 +82,8 @@ class ImportComponentCommand extends Command
 		unset($importSchema['created_at'], $importSchema['updated_at']);
 
 		if ($this->option('as')) {
-			$importSchema['name'] = $this->option('as');
-			$importSchema['real_name'] = $this->option('as');
+//			$importSchema['name'] = $this->option('as');
+//			$importSchema['real_name'] = $this->option('as');
 		}
 
 		// don’t like this but not sure how to have a default value which prompts for a choice and
@@ -127,7 +129,7 @@ class ImportComponentCommand extends Command
 			return $importSchema;
 		}
 
-		$group = $this->sbComponentGroups->filter(fn($group) => $group['name'] === $componentGroupName)->first();
+		$group = $this->getsComponents->groups()->filter(fn($group) => $group['name'] === $componentGroupName)->first();
 
 		$importSchema['component_group_uuid'] = $group['uuid'];
 
@@ -137,9 +139,9 @@ class ImportComponentCommand extends Command
 	protected function setComponentGroup($importSchema)
 	{
 		if (Str::isUuid($this->option('group'))) {
-			$group = $this->sbComponentGroups->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
+			$group = $this->getsComponents->groups()->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
 		} else {
-			$group = $this->sbComponentGroups->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
+			$group = $this->getsComponents->groups()->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
 		}
 
 		if (!$group) {
@@ -217,7 +219,7 @@ class ImportComponentCommand extends Command
 	 */
 	protected function hasChanges($importSchema)
 	{
-		$existingSchema = $this->requestComponent($this->sbComponents->firstWhere('name', $importSchema['name'])['id']);
+		$existingSchema = $this->getCompnents()->requestById($this->sbComponents->firstWhere('name', $importSchema['name'])['id']);
 		unset($existingSchema['created_at'], $existingSchema['updated_at']);
 
 		$treeWalker = new \TreeWalker(['returntype' => 'array']);
