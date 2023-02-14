@@ -5,6 +5,8 @@ namespace Riclep\StoryblokCli;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
+// TODO - add ability to write json file
+
 class WritesComponentJson
 {
 	protected $json;

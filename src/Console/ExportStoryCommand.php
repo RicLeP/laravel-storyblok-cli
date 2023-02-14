@@ -5,7 +5,8 @@ namespace Riclep\StoryblokCli\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Storyblok\ManagementClient;
+use Riclep\StoryblokCli\ReadsStory;
+use Riclep\StoryblokCli\SavesStoryJson;
 
 class ExportStoryCommand extends Command
 {
@@ -21,20 +22,22 @@ class ExportStoryCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Save a story as JSON';
+    protected $description = 'Export a story as JSON';
 
 	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'stories' . DIRECTORY_SEPARATOR;
+
+	protected $storyReader;
 
 	/**
 	 * Create a new command instance.
 	 *
 	 * @return void
 	 */
-	public function __construct()
+	public function __construct(ReadsStory $ReadsStory)
 	{
-		$this->client = new ManagementClient(config('storyblok-cli.oauth_token'));
-
 		parent::__construct();
+
+		$this->storyReader = $ReadsStory;
 	}
 
     /**
@@ -44,29 +47,41 @@ class ExportStoryCommand extends Command
      */
     public function handle()
     {
-	    $storyExists = $this->client->get('spaces/' . config('storyblok-cli.space_id') . '/stories/', [
-			'with_slug' => $this->argument('slug')
-	    ])->getBody()['stories'];
+	    if (!$this->argument('slug')) {
+		    $this->error('No slug specified');
+	    }
 
-	    if ($storyExists) {
-			$filename = Str::of($this->argument('slug'))->replace('/', '-')->slug() . '.json';
+	    if (is_numeric($this->argument('slug'))) {
+		    try {
+			    $story = $this->storyReader->requestById($this->argument('slug'));
+		    } catch (\Exception $e) {
+			    $this->error($e->getMessage());
 
-			if (Storage::exists($this->storagePath . $filename)) {
-				if (!$this->confirm($filename . ' already exists. Do you want to overwrite it?')) {
-					$this->info('Component not exported.');
-					exit;
-				}
+			    exit;
+		    }
+	    } else {
+		    try {
+			    $story = $this->storyReader->requestBySlug($this->argument('slug'));
+		    } catch (\Exception $e) {
+			    $this->error($e->getMessage());
+
+			    exit;
+		    }
+	    }
+
+		$savesStoryJson = new SavesStoryJson($story);
+
+		if ($savesStoryJson->exportExists($this->storagePath)) {
+			if (!$this->confirm($savesStoryJson->filename . ' already exists. Do you want to overwrite it?')) {
+				$this->info('Component not exported.');
+				exit;
 			}
-
-			$story = $this->client->get('spaces/' . config('storyblok-cli.space_id') . '/stories/' . $storyExists[0]['id'])->getBody();
-
-			$json = json_encode($story, JSON_PRETTY_PRINT);
-
-			Storage::put($this->storagePath . $filename, $json);
-
-			$this->info('Saved to storage: ' . $filename);
-		} else {
-			$this->warn('There is no story for your slug: ' . $this->argument('slug'));
 		}
+
+	    if ($savesStoryJson->save($this->storagePath)) {
+			$this->info('Story exported to storage: ' . $this->storagePath . $savesStoryJson->filename);
+	    } else {
+		    $this->error('Story not exported.');
+	    }
     }
 }

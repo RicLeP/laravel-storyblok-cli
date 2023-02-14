@@ -6,6 +6,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Storyblok\ManagementClient;
 
+// TODO - export and import all components by their group
+
 class ReadsComponents
 {
 	protected Collection $components;

@@ -6,10 +6,11 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use JsonException;
+use Riclep\StoryblokCli\CreatesComponentGroups;
+use Riclep\StoryblokCli\CreatesComponents;
 use Riclep\StoryblokCli\ReadsComponents;
 use Riclep\StoryblokCli\WritesComponentJson;
 use Storyblok\ApiException;
-use Storyblok\ManagementClient;
 
 class ImportComponentCommand extends Command
 {
@@ -29,20 +30,16 @@ class ImportComponentCommand extends Command
      */
     protected $description = 'Import components from JSON definitions';
 
-	/**
-	 * @var ManagementClient
-	 */
-	protected ManagementClient $managementClient;
-
 	protected $componentReader;
+	protected $componentCreator;
 
 
-	public function __construct(ReadsComponents $ReadsComponents)
+	public function __construct(ReadsComponents $readsComponents, CreatesComponents $createsComponents)
 	{
 		parent::__construct();
 
-		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
-		$this->componentReader = $ReadsComponents;
+		$this->componentReader = $readsComponents;
+		$this->componentCreator = $createsComponents;
 	}
 
 	/**
@@ -70,7 +67,6 @@ class ImportComponentCommand extends Command
 
 	    $this->importComponent(new WritesComponentJson(Storage::get($this->storagePath . $this->argument('file'))));
 
-
 	    return Command::SUCCESS;
     }
 
@@ -88,7 +84,13 @@ class ImportComponentCommand extends Command
 		if ($this->option('group') && $this->option('group') !== 'false') {
 			$componentWriter->group($this->getComponentGroup());
 		} else {
-			$componentWriter->group($this->selectComponentGroup($this->componentReader->find($componentWriter->getName())['component_group_uuid']));
+			$existingGroup = $this->componentReader->find($componentWriter->getName());
+
+			if ($existingGroup) {
+				$componentWriter->group($this->selectComponentGroup($existingGroup['component_group_uuid']));
+			} else {
+				$componentWriter->group($this->selectComponentGroup());
+			}
 		}
 
 		if ($component = $this->componentReader->find($componentWriter->getName())) {
@@ -100,19 +102,21 @@ class ImportComponentCommand extends Command
 		}
 	}
 
-	protected function selectComponentGroup($existingGroupUuid)
+	protected function selectComponentGroup($existingGroupUuid = null)
 	{
 		$componentGroups = clone $this->componentReader->groups();
-
-		// TODO print the group it’s already in
 
 		$componentGroups->prepend([
 			'name' => '<fg=green>Root group</>',
 		])->prepend([
 			'name' => '<fg=green>New group</>',
-		])->prepend([
-			'name' => '<fg=green>Keep group</>',
 		]);
+
+		if ($existingGroupUuid) {
+			$componentGroups->prepend([
+				'name' => '<fg=green>Keep group</>',
+			]);
+		}
 
 		$componentGroupName = strip_tags($this->choice(
 			'Add component to group',
@@ -141,8 +145,10 @@ class ImportComponentCommand extends Command
 	{
 		if (Str::isUuid($this->option('group'))) {
 			$group = $this->componentReader->groups()->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
-		} else {
+		} elseif (is_numeric($this->option('group'))) {
 			$group = $this->componentReader->groups()->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
+		} else {
+			$group = $this->componentReader->groups()->filter(fn($group) => $group['name'] === $this->option('group'))->first();
 		}
 
 		if (!$group) {
@@ -157,12 +163,8 @@ class ImportComponentCommand extends Command
 	{
 		$componentGroupName = $this->ask('Enter new group name');
 
-		$this->managementClient->post('spaces/' . config('storyblok-cli.space_id') . '/component_groups',
-			[
-				'component_group' => [
-					'name' => $componentGroupName,
-				]
-			])->getBody();
+		$componentGroupCreator = new CreatesComponentGroups();
+		$componentGroupCreator->create($componentGroupName);
 
 		$this->componentReader->requestAll();
 
@@ -186,11 +188,7 @@ class ImportComponentCommand extends Command
 
 		if ($this->confirm('Do you want to update the component in Storyblok?')) {
 			// TODO - add option to backup existing schema
-
-			$this->managementClient->put('spaces/' . config('storyblok-cli.space_id') . '/components/' . $componentId,
-				[
-					'component' => $importSchema
-				])->getBody();
+			$this->componentCreator->update($componentId, $importSchema);
 
 			$this->info('Component updated: ' . $importSchema['name']);
 		} else {
@@ -205,9 +203,7 @@ class ImportComponentCommand extends Command
 	 */
 	protected function createComponent($importSchema)
 	{
-		$this->managementClient->post('spaces/' . config('storyblok-cli.space_id') . '/components/', [
-			'component' => $importSchema
-		])->getBody();
+		$this->componentCreator->create($importSchema);
 
 		$this->info('Component created: ' . $importSchema['name']);
 	}
