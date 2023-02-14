@@ -73,7 +73,7 @@ class ExportStoryCommand extends Command
 
 		if ($savesStoryJson->exportExists($this->storagePath)) {
 			if (!$this->confirm($savesStoryJson->filename . ' already exists. Do you want to overwrite it?')) {
-				$this->info('Component not exported.');
+				$this->info('Story not exported.');
 				exit;
 			}
 		}

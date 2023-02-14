@@ -4,6 +4,8 @@ namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
+use Riclep\StoryblokCli\CreatesStories;
+use Riclep\StoryblokCli\ReadsStory;
 use Storyblok\ManagementClient;
 
 class ImportStoryCommand extends Command
@@ -41,15 +43,12 @@ class ImportStoryCommand extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(ReadsStory $readsStory, CreatesStories $createsStories)
     {
 		// TODO - interactive console for selecting save folder?
 
-	    $storyExists = $this->client->get('spaces/' . config('storyblok-cli.space_id') . '/stories/', [
-			'with_slug' => $this->argument('slug')
-	    ])->getBody()['stories'];
 
-		if (!$storyExists) {
+		if (!$readsStory->exists($this->argument('slug'))) {
 			$source = json_decode(Storage::get($this->storagePath . $this->argument('filename')), true);
 
 			$story = [
@@ -61,7 +60,7 @@ class ImportStoryCommand extends Command
 				"publish" =>  1
 			];
 
-			$importedStory = $this->client->post('spaces/' . config('storyblok-cli.space_id') . '/stories/', $story)->getBody()['story'];
+			$importedStory = $createsStories->create($story);
 
 			$this->info('Imported into Storyblok: ' . $importedStory['name']);
 		} else {

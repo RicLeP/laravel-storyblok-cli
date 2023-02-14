@@ -20,11 +20,12 @@ class ReadsStory
 	{
 		try {
 			$response = $this->managementClient->get('spaces/' . config('storyblok-cli.space_id') . '/stories/' . $storyId)->getBody();
+
 		} catch (\Exception $e) {
 			throw new \Exception('No story found with ID: ' . $storyId);
 		}
 
-		return $response['story'];
+		return $response;
 
 		// TODO check if folder
 	}
@@ -42,6 +43,12 @@ class ReadsStory
 		}
 
 		return $this->requestById($response['stories'][0]['id']);
+	}
+
+	public function exists($slug) {
+		return (boolean) $this->managementClient->get('spaces/' . config('storyblok-cli.space_id') . '/stories/', [
+			'with_slug' => $slug
+		])->getBody()['stories'];
 	}
 
 	public function story()

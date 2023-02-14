@@ -23,7 +23,7 @@ class SavesStoryJson
 	}
 
 	protected function filename() {
-		return Str::of($this->story['full_slug'])->replace('/', '-')->slug() . '.json';
+		return Str::of($this->story['story']['full_slug'])->replace('/', '-')->slug() . '.json';
 	}
 
 	public function exportExists($path) {
