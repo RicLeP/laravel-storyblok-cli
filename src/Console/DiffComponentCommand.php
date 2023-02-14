@@ -5,6 +5,7 @@ namespace Riclep\StoryblokCli\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use JsonException;
+use Riclep\StoryblokCli\ReadsComponents;
 use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
@@ -31,12 +32,15 @@ class DiffComponentCommand extends Command
 	 */
 	protected ManagementClient $managementClient;
 
+	protected $componentReader;
 
-	public function __construct()
+
+	public function __construct(ReadsComponents $ReadsComponents)
 	{
 		parent::__construct();
 
 		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
+		$this->componentReader = $ReadsComponents;
 	}
 
 	/**
@@ -59,7 +63,7 @@ class DiffComponentCommand extends Command
 			exit;
 		}
 
-		$this->requestComponents();
+		$this->componentReader->requestAll();
 
 		$this->diff($this->storagePath . $this->argument('file'), $this->argument('remote'));
 
@@ -73,14 +77,16 @@ class DiffComponentCommand extends Command
 	 */
 	protected function diff($localComponent, $remoteComponent = null)
 	{
-		$localSchema = $this->cleanSchema(json_decode(Storage::get($localComponent), true, 512, JSON_THROW_ON_ERROR));
+		$localSchema = json_decode(Storage::get($localComponent), true, 512, JSON_THROW_ON_ERROR);
 
-		$remoteSchema = $this->cleanSchema($this->requestComponent($this->sbComponents->firstWhere('name', $remoteComponent ?? $localSchema['name'])['id']));
+		$remoteSchema = $this->componentReader->requestById(
+			$this->componentReader->find($remoteComponent ?? $localSchema['name'])['id']
+		);
 
 		$treeWalker = new \TreeWalker(['returntype' => 'array']);
 		$changes = $treeWalker->getdiff(
-			json_encode($localSchema, JSON_THROW_ON_ERROR),
-			json_encode($remoteSchema, JSON_THROW_ON_ERROR)
+			json_encode($this->cleanSchema($localSchema), JSON_THROW_ON_ERROR),
+			json_encode($this->cleanSchema($remoteSchema), JSON_THROW_ON_ERROR)
 		);
 
 		if (empty(array_filter($changes))) {
@@ -97,7 +103,7 @@ class DiffComponentCommand extends Command
 
 	protected function cleanSchema($schema)
 	{
-		unset($schema['id'],$schema['created_at'], $schema['updated_at'], $schema['component_group_uuid'], $schema['name'], $schema['real_name']);
+		unset($schema['id'], $schema['created_at'], $schema['updated_at'], $schema['component_group_uuid'], $schema['name'], $schema['real_name']);
 
 		return $schema;
 	}
