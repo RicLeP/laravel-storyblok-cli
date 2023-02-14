@@ -3,6 +3,7 @@
 namespace Riclep\StoryblokCli;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Storyblok\ManagementClient;
 
 class ReadsComponents
@@ -59,7 +60,21 @@ class ReadsComponents
 
 	// TODO update to use ID or UUID instead?
 	public function find($componentName) {
-		$component = $this->components->filter(fn($value) => $value['name'] === $componentName)->first();
+		$component = $this->components->filter(fn($component) => $component['name'] === $componentName)->first();
+
+		return $component;
+	}
+
+	public function findGroup($needle) {
+		if (Str::isUuid($needle)) {
+			$key = 'uuid';
+		} elseif (is_numeric($needle)) {
+			$key = 'id';
+		} else {
+			$key = 'name';
+		}
+
+		$component = $this->groups->filter(fn($group) => $group[$key] === $needle)->first();
 
 		return $component;
 	}

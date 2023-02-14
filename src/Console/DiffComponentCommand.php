@@ -5,14 +5,11 @@ namespace Riclep\StoryblokCli\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use JsonException;
-use Riclep\StoryblokCli\Traits\GetsComponents;
 use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
 class DiffComponentCommand extends Command
 {
-	use GetsComponents;
-
 	/**
 	 * The name and signature of the console command.
 	 *

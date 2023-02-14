@@ -3,7 +3,7 @@
 namespace Riclep\StoryblokCli;
 
 use Illuminate\Support\ServiceProvider;
-use Riclep\StoryblokCli\Console\ComponentListCommand;
+use Riclep\StoryblokCli\Console\ListComponentsCommand;
 use Riclep\StoryblokCli\Console\DiffComponentCommand;
 use Riclep\StoryblokCli\Console\ExportComponentCommand;
 use Riclep\StoryblokCli\Console\ExportStoryCommand;
@@ -18,7 +18,7 @@ class StoryblokCliServiceProvider extends ServiceProvider
     public function boot()
     {
 		$this->commands([
-			ComponentListCommand::class,
+			ListComponentsCommand::class,
 			DiffComponentCommand::class,
 			ExportComponentCommand::class,
 			ExportStoryCommand::class,

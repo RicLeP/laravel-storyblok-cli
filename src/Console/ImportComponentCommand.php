@@ -39,11 +39,10 @@ class ImportComponentCommand extends Command
 
 	public function __construct(ReadsComponents $ReadsComponents)
 	{
+		parent::__construct();
 
 		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 		$this->componentReader = $ReadsComponents;
-
-		parent::__construct();
 	}
 
 	/**
