@@ -3,7 +3,7 @@
 namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
-use Riclep\StoryblokCli\ReadsStory;
+use Riclep\StoryblokCli\ReadsStories;
 use Riclep\StoryblokCli\SavesStoryJson;
 
 class ExportStoryCommand extends Command
@@ -24,7 +24,7 @@ class ExportStoryCommand extends Command
 	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'stories' . DIRECTORY_SEPARATOR;
 
 	/**
-	 * @var ReadsStory
+	 * @var ReadsStories
 	 */
 	protected $storyReader;
 
@@ -33,7 +33,7 @@ class ExportStoryCommand extends Command
 	 *
 	 * @return void
 	 */
-	public function __construct(ReadsStory $ReadsStory)
+	public function __construct(ReadsStories $ReadsStory)
 	{
 		parent::__construct();
 

@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use JsonException;
 use Riclep\StoryblokCli\ReadsComponents;
+use Riclep\StoryblokCli\SavesComponentJson;
 use Storyblok\ManagementClient;
 
 class ExportComponentCommand extends Command
@@ -89,18 +90,20 @@ class ExportComponentCommand extends Command
 	{
 		$component = $this->componentReader->find($componentName);
 
-		if (Storage::exists($this->storagePath . $componentName . '.json') && !$this->option('all')) {
+		$savesComponentJson = new SavesComponentJson($component);
+
+		if ($savesComponentJson->exportExists($this->storagePath) && !$this->option('all')) {
 			if (!$this->confirm($componentName . '.json already exists. Do you want to overwrite it?')) {
 				$this->info('Component not exported.');
 				exit;
 			}
 		}
-// TODO move to class
-		Storage::put($this->storagePath . $componentName . '.json', json_encode($component, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
 
-		$this->info('Saved to storage: ' . $componentName . '.json');
-
-		return $component;
+		if ($savesComponentJson->save($this->storagePath)) {
+			$this->info('Component exported to storage: ' . $this->storagePath . $savesComponentJson->filename);
+		} else {
+			$this->error('Component not exported.');
+		}
 	}
 
 	/**

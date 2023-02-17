@@ -5,7 +5,7 @@ namespace Riclep\StoryblokCli\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Riclep\StoryblokCli\CreatesStories;
-use Riclep\StoryblokCli\ReadsStory;
+use Riclep\StoryblokCli\ReadsStories;
 
 class ImportStoryCommand extends Command
 {
@@ -38,12 +38,17 @@ class ImportStoryCommand extends Command
      *
      * @return void
      */
-    public function handle(ReadsStory $readsStory, CreatesStories $createsStories)
+    public function handle(ReadsStories $readsStory, CreatesStories $createsStories)
     {
+
+		if (!$source = json_decode(Storage::get($this->storagePath . $this->argument('filename')), true)) {
+			$this->error('Could not read JSON file: ' . $this->argument('filename'));
+
+			exit;
+		}
+
 		// TODO - interactive console for selecting save folder?
 		if (!$readsStory->exists($this->argument('slug'))) {
-			$source = json_decode(Storage::get($this->storagePath . $this->argument('filename')), true);
-
 			$story = [
 				"story" =>  [
 					"name" => $source['story']['name'] . ' (Imported)',

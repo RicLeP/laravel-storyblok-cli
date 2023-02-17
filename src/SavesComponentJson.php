@@ -5,14 +5,14 @@ namespace Riclep\StoryblokCli;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class SavesStoryJson
+class SavesComponentJson
 {
 	/**
-	 * @param $story
+	 * @param $component
 	 */
-	public function __construct($story)
+	public function __construct($component)
 	{
-		$this->story = $story;
+		$this->component = $component;
 		$this->filename = $this->filename();
 	}
 
@@ -23,7 +23,7 @@ class SavesStoryJson
 	 * @return bool
 	 */
 	public function save($path) {
-		$json = json_encode($this->story, JSON_PRETTY_PRINT);
+		$json = json_encode($this->component, JSON_PRETTY_PRINT);
 
 		return Storage::put($path . $this->filename, $json);
 	}
@@ -34,11 +34,11 @@ class SavesStoryJson
 	 * @return string
 	 */
 	protected function filename() {
-		return Str::of($this->story['story']['full_slug'])->replace('/', '-')->slug() . '.json';
+		return $this->component['name'] . '.json';
 	}
 
 	/**
-	 * Checks if JSON for the story exists
+	 * Checks if JSON for the component exists
 	 *
 	 * @param $path
 	 * @return bool

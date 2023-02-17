@@ -2,10 +2,11 @@
 
 namespace Riclep\StoryblokCli;
 
+use Illuminate\Support\Facades\Storage;
 use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
-class ReadsStory
+class ReadsStories
 {
 	protected $story;
 
