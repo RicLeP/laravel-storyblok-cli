@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Riclep\StoryblokCli\CreatesStories;
 use Riclep\StoryblokCli\ReadsStories;
+use Storyblok\ApiException;
 
 class ImportStoryCommand extends Command
 {
@@ -33,11 +34,12 @@ class ImportStoryCommand extends Command
 		parent::__construct();
 	}
 
-    /**
-     * Imports a story into Storyblok from a JSON file
-     *
-     * @return void
-     */
+	/**
+	 * Imports a story into Storyblok from a JSON file
+	 *
+	 * @return void
+	 * @throws ApiException
+	 */
     public function handle(ReadsStories $readsStory, CreatesStories $createsStories)
     {
 
