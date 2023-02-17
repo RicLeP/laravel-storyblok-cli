@@ -13,7 +13,7 @@ use Riclep\StoryblokCli\Console\ImportStoryCommand;
 class StoryblokCliServiceProvider extends ServiceProvider
 {
     /**
-     * Bootstrap the application services.
+     * Bootstrap the package services.
      */
     public function boot()
     {

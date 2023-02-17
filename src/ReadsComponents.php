@@ -4,6 +4,7 @@ namespace Riclep\StoryblokCli;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
 // TODO - export and import all components by their group
@@ -19,6 +20,12 @@ class ReadsComponents
 		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
 
+	/**
+	 * Gets all components and groups from the Storyblok Management API.
+	 *
+	 * @return void
+	 * @throws ApiException
+	 */
 	public function requestAll()
 	{
 		$response = $this->managementClient->get('spaces/' . config('storyblok-cli.space_id') . '/components/')->getBody();
@@ -27,7 +34,14 @@ class ReadsComponents
 		$this->groups = collect($response['component_groups']);
 	}
 
-	// TODO --- does this belong here?
+
+	/**
+	 * Returns a single component by ID.
+	 *
+	 * @param $componentId
+	 * @return mixed
+	 * @throws ApiException
+	 */
 	public function requestById($componentId)
 	{
 		$response = $this->managementClient->get('spaces/' . config('storyblok-cli.space_id') . '/components/' . $componentId)->getBody();
@@ -36,6 +50,8 @@ class ReadsComponents
 	}
 
 	/**
+	 * Returns a Collection of components.
+	 *
 	 * @return Collection
 	 */
 	public function components(): Collection
@@ -44,6 +60,8 @@ class ReadsComponents
 	}
 
 	/**
+	 * Returns a Collection of component groups.
+	 *
 	 * @return Collection
 	 */
 	public function groups(): Collection
@@ -52,21 +70,32 @@ class ReadsComponents
 	}
 
 	/**
+	 * Returns a Collection of component names.
+	 *
 	 * @return Collection
 	 */
-	// TODO - retuen UUID ore ID? can an artisan question return that?
 	public function listByName(): Collection
 	{
+		// TODO - should it return UUID or ID? can an artisan question return that?
 		return $this->components->pluck('name');
 	}
 
-	// TODO update to use ID or UUID instead?
+	/**
+	 * Returns a single component by name.
+	 *
+	 * @return Collection
+	 */
 	public function find($componentName) {
-		$component = $this->components->filter(fn($component) => $component['name'] === $componentName)->first();
-
-		return $component;
+		// TODO update to use ID or UUID instead?
+		return $this->components->filter(fn($component) => $component['name'] === $componentName)->first();
 	}
 
+	/**
+	 * Find a group by name, ID or UUID.
+	 *
+	 * @param $needle
+	 * @return \Closure|null
+	 */
 	public function findGroup($needle) {
 		if (Str::isUuid($needle)) {
 			$key = 'uuid';
@@ -76,8 +105,6 @@ class ReadsComponents
 			$key = 'name';
 		}
 
-		$component = $this->groups->filter(fn($group) => $group[$key] === $needle)->first();
-
-		return $component;
+		return $this->groups->filter(fn($group) => $group[$key] === $needle)->first();
 	}
 }

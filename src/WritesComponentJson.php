@@ -9,6 +9,9 @@ use InvalidArgumentException;
 
 class WritesComponentJson
 {
+	/**
+	 * @var string
+	 */
 	protected $json;
 
 	public function __construct($json)
@@ -18,10 +21,21 @@ class WritesComponentJson
 		$this->cleanJson();
 	}
 
+	/**
+	 * Remove uneeded fields from the JSON
+	 *
+	 * @return void
+	 */
 	public function cleanJson() {
 		unset($this->json['created_at'], $this->json['updated_at']);
 	}
 
+	/**
+	 * Set the name of the component
+	 *
+	 * @param $name
+	 * @return $this
+	 */
 	public function name($name)
 	{
 		$this->json['name'] = $name;
@@ -29,11 +43,18 @@ class WritesComponentJson
 		return $this;
 	}
 
+	/**
+	 * Get the name of the component
+	 *
+	 * @return mixed|string
+	 */
 	public function getName() {
 		return $this->json['name'];
 	}
 
 	/**
+	 * Set the component’s group
+	 *
 	 * @throws InvalidArgumentException
 	 */
 	public function group($group)
@@ -46,11 +67,22 @@ class WritesComponentJson
 		}
 	}
 
+	/**
+	 * Convert the component to JSON
+	 *
+	 * @return false|string
+	 * @throws \JsonException
+	 */
 	public function toJson()
 	{
 		return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
 	}
 
+	/**
+	 * Return the component as an array
+	 *
+	 * @return mixed|string
+	 */
 	public function toArray()
 	{
 		return $this->json;

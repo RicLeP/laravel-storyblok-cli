@@ -2,8 +2,7 @@
 
 namespace Riclep\StoryblokCli;
 
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
 class CreatesComponentGroups
@@ -15,6 +14,13 @@ class CreatesComponentGroups
 		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
 
+	/**
+	 * Creates component groups using the Storyblok Management API.
+	 *
+	 * @param $name
+	 * @return \stdClass
+	 * @throws ApiException
+	 */
 	public function create($name) {
 		return $this->managementClient->post('spaces/' . config('storyblok-cli.space_id') . '/component_groups',
 			[

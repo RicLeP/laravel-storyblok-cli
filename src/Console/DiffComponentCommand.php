@@ -6,32 +6,36 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use JsonException;
 use Riclep\StoryblokCli\ReadsComponents;
-use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
 class DiffComponentCommand extends Command
 {
 	/**
-	 * The name and signature of the console command.
-	 *
 	 * @var string
 	 */
 	protected $signature = 'ls:diff-component {file} {remote?}';
 
 	/**
-	 * The console command description.
-	 *
 	 * @var string
 	 */
 	protected $description = 'Diff components from JSON definitions';
 
+	/**
+	 *
+	 * @var string
+	 */
 	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
 
 	/**
+	 * Storyblok Management API Client
+	 *
 	 * @var ManagementClient
 	 */
 	protected ManagementClient $managementClient;
 
+	/**
+	 * @var ReadsComponents
+	 */
 	protected $componentReader;
 
 
@@ -47,7 +51,6 @@ class DiffComponentCommand extends Command
 	 * Execute the console command.
 	 *
 	 * @return int
-	 * @throws ApiException
 	 * @throws JsonException
 	 */
 	public function handle(): int
@@ -71,7 +74,10 @@ class DiffComponentCommand extends Command
 	}
 
 	/**
-	 * @param $importSchema
+	 * Takes a local component file and compares it to a remote component
+	 *
+	 * @param $localComponent
+	 * @param null $remoteComponent
 	 * @return void
 	 * @throws JsonException
 	 */
@@ -101,6 +107,12 @@ class DiffComponentCommand extends Command
 		dump($changes);
 	}
 
+	/**
+	 * Removes fields that we don't care about when diffing
+	 *
+	 * @param $schema
+	 * @return mixed
+	 */
 	protected function cleanSchema($schema)
 	{
 		unset($schema['id'], $schema['created_at'], $schema['updated_at'], $schema['component_group_uuid'], $schema['name'], $schema['real_name']);

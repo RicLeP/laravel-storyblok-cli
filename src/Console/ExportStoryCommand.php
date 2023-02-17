@@ -3,29 +3,29 @@
 namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Riclep\StoryblokCli\ReadsStory;
 use Riclep\StoryblokCli\SavesStoryJson;
 
 class ExportStoryCommand extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'ls:export-story {slug}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
-    protected $description = 'Export a story as JSON';
+    protected $description = 'Export a story as JSON to the storage folder';
 
+	/**
+	 * @var string
+	 */
 	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'stories' . DIRECTORY_SEPARATOR;
 
+	/**
+	 * @var ReadsStory
+	 */
 	protected $storyReader;
 
 	/**
@@ -41,9 +41,9 @@ class ExportStoryCommand extends Command
 	}
 
     /**
-     * Execute the console command.
+     * Exports a story as JSON to the storage folder
      *
-     * @return int
+     * @return void
      */
     public function handle()
     {

@@ -15,12 +15,13 @@ use Storyblok\ApiException;
 class ImportComponentCommand extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'ls:import-component {file?} {--as=} {--group=false}';
 
+	/**
+	 * @var string
+	 */
 	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
 
     /**
@@ -30,10 +31,21 @@ class ImportComponentCommand extends Command
      */
     protected $description = 'Import components from JSON definitions';
 
+	/**
+	 * @var ReadsComponents
+	 */
 	protected $componentReader;
+
+	/**
+	 * @var CreatesComponents
+	 */
 	protected $componentCreator;
 
 
+	/**
+	 * @param ReadsComponents $readsComponents
+	 * @param CreatesComponents $createsComponents
+	 */
 	public function __construct(ReadsComponents $readsComponents, CreatesComponents $createsComponents)
 	{
 		parent::__construct();
@@ -71,7 +83,10 @@ class ImportComponentCommand extends Command
     }
 
 	/**
-	 * @throws JsonException|ApiException
+	 * Imports a component from JSON
+	 *
+	 * @param WritesComponentJson $componentWriter
+	 * @return mixed|null
 	 */
 	protected function importComponent(WritesComponentJson $componentWriter)
 	{
@@ -102,6 +117,12 @@ class ImportComponentCommand extends Command
 		}
 	}
 
+	/**
+	 * Select the component group to add the component to
+	 *
+	 * @param $existingGroupUuid
+	 * @return mixed|null
+	 */
 	protected function selectComponentGroup($existingGroupUuid = null)
 	{
 		$componentGroups = clone $this->componentReader->groups();
@@ -141,6 +162,11 @@ class ImportComponentCommand extends Command
 		return $group['uuid'];
 	}
 
+	/**
+	 * Determine the component group or action selected by the user
+	 *
+	 * @return mixed|void
+	 */
 	protected function getComponentGroup()
 	{
 		if (Str::isUuid($this->option('group'))) {
@@ -159,6 +185,11 @@ class ImportComponentCommand extends Command
 		return $group['uuid'];
 	}
 
+	/**
+	 * Creates a new component group
+	 *
+	 * @return string
+	 */
 	protected function createComponentGroup()
 	{
 		$componentGroupName = $this->ask('Enter new group name');
@@ -172,7 +203,9 @@ class ImportComponentCommand extends Command
 	}
 
 	/**
-	 * @param $component
+	 * Updates an existing component
+	 *
+	 * @param $componentId
 	 * @param $importSchema
 	 * @return void
 	 */
@@ -198,8 +231,10 @@ class ImportComponentCommand extends Command
 	}
 
 	/**
+	 * Creates a new component in Storyblok
+	 *
 	 * @param $importSchema
-	 * @return mixed
+	 * @return void
 	 */
 	protected function createComponent($importSchema)
 	{

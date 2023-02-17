@@ -4,30 +4,25 @@ namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
-use Riclep\StoryblokCli\Traits\GetsComponents;
 use Storyblok\ManagementClient;
 
 class ComponentListCommand extends Command
 {
-	use GetsComponents;
-
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'ls:component-list
 	            {--additional-fields= : Additional fields to pull form Storyblok Management API}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'List all Storyblok components for the space.';
 
 
 	/**
+	 * Storyblok Management API Client
+	 *
 	 * @var ManagementClient
 	 */
 	protected ManagementClient $managementClient;
@@ -41,8 +36,6 @@ class ComponentListCommand extends Command
 	}
 
     /**
-     * Execute the console command.
-     *
      * @return void
      */
     public function handle()
@@ -71,5 +64,4 @@ class ComponentListCommand extends Command
             $rows
         );
     }
-
 }

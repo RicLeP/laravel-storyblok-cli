@@ -13,8 +13,6 @@ class ListComponentsCommand extends Command
 	use GetsComponents;
 
     /**
-     * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'ls:list-components
@@ -22,8 +20,6 @@ class ListComponentsCommand extends Command
 	            {--G|grouped : Include component groups}';
 
     /**
-     * The console command description.
-     *
      * @var string
      */
     protected $description = 'List all Storyblok components for the space.';
@@ -34,7 +30,7 @@ class ListComponentsCommand extends Command
 	 */
 	protected ManagementClient $managementClient;
 
-	protected $componentReader;
+	protected ReadsComponents $componentReader;
 
 
 	public function __construct(ReadsComponents $ReadsComponents)
@@ -46,7 +42,7 @@ class ListComponentsCommand extends Command
 	}
 
     /**
-     * Execute the console command.
+     * Lists all the components in the space
      *
      * @return void
      */
@@ -93,5 +89,4 @@ class ListComponentsCommand extends Command
             $rows
         );
     }
-
 }
