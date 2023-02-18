@@ -10,7 +10,7 @@ return [
 	| Enter your Storyblok Personal access token to access their management API
 	|
 	*/
-	'oauth_token' => env('STORYBLOK_OAUTH_TOKEN', null),
+	'oauth_token' => env('STORYBLOK_OAUTH_TOKEN', ""),
 
 	/*
 	|--------------------------------------------------------------------------
@@ -20,5 +20,5 @@ return [
 	| Enter your Storyblok space ID for use with the management API
 	|
 	*/
-	'space_id' => env('STORYBLOK_SPACE_ID', null),
+	'space_id' => env('STORYBLOK_SPACE_ID', ""),
 ];
