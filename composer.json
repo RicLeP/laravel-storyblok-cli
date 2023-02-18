@@ -48,5 +48,8 @@
 				"Riclep\\StoryblokCli\\StoryblokCliServiceProvider"
 			]
 		}
-	}
+	},
+    "require-dev": {
+        "orchestra/testbench": "^8.0"
+    }
 }
