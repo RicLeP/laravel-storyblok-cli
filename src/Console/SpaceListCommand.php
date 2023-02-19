@@ -49,11 +49,14 @@ class SpaceListCommand extends Command
         $spacesData = Spaces::make()
             ->all();
 
+        $spacesData->dump();
+
         $rows = $spacesData->getSpaces()->map(function ($c) {
             return  [
-                'name' => $c['name'],
+                'name' => Str::limit($c['name'], config('storyblok-cli.str_limit_chars', 40), '...'),
                 'id' => $c['id'],
                 'plan' => $c['plan'],
+                'region' => $c['region'],
             ];
         });
 
