@@ -4,22 +4,15 @@ namespace Riclep\StoryblokCli\Data;
 
 use Illuminate\Support\Collection;
 
-class ComponentsData
+class ComponentsData extends BasicData
 {
-    private array $response;
-
-    public function __construct(array $response)
-    {
-        $this->response = $response;
-    }
-
     public function getComponents(): Collection
     {
-        return collect($this->response['components']);
+        return $this->getCollectionFromResponse('components');
     }
 
     public function getComponentGroups(): Collection
     {
-        return collect($this->response['component_groups']);
+        return $this->getCollectionFromResponse('component_groups');
     }
 }

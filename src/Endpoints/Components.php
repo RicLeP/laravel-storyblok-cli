@@ -3,24 +3,19 @@
 namespace Riclep\StoryblokCli\Endpoints;
 
 use Riclep\StoryblokCli\Data\ComponentsData;
-use Storyblok\ManagementClient;
 
-class Components
+class Components extends BasicEndpoint
 {
-    private ManagementClient $client;
-
     private string $spaceId;
 
     public function __construct($token)
     {
-        $this->client = new ManagementClient($token);
+        parent::__construct($token);
     }
 
     public static function make($token = null): self
     {
-        $token = is_null($token) ? config('storyblok-cli.oauth_token') : $token;
-
-        return new self($token);
+        return new self(parent::getToken($token));
     }
 
     public function all(): ComponentsData

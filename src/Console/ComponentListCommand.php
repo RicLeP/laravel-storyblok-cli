@@ -5,7 +5,6 @@ namespace Riclep\StoryblokCli\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Riclep\StoryblokCli\Endpoints\Components;
-use Storyblok\ManagementClient;
 
 class ComponentListCommand extends Command
 {
@@ -25,16 +24,9 @@ class ComponentListCommand extends Command
      */
     protected $description = 'List all Storyblok components for the space.';
 
-    /**
-     * @var ManagementClient
-     */
-    protected ManagementClient $managementClient;
-
     public function __construct()
     {
         parent::__construct();
-
-        $this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
     }
 
     protected function getOptionWithFallbacks(string $key, $default = '')
