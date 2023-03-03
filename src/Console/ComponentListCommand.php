@@ -4,19 +4,17 @@ namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
-use Riclep\StoryblokCli\Traits\GetsComponents;
-use Storyblok\ManagementClient;
+use Riclep\StoryblokCli\Endpoints\Components;
 
 class ComponentListCommand extends Command
 {
-	use GetsComponents;
-
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
     protected $signature = 'ls:component-list
+                {--space_id= : Space ID}
 	            {--additional-fields= : Additional fields to pull form Storyblok Management API}';
 
     /**
@@ -26,19 +24,21 @@ class ComponentListCommand extends Command
      */
     protected $description = 'List all Storyblok components for the space.';
 
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
-	/**
-	 * @var ManagementClient
-	 */
-	protected ManagementClient $managementClient;
+    protected function getOptionWithFallbacks(string $key, $default = '')
+    {
+        $domain = 'storyblok-cli';
+        $key = Str::lower($key);
 
-
-	public function __construct()
-	{
-		parent::__construct();
-
-		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
-	}
+        return $this->option($key)
+            ?? config($domain.'.'.$key)
+            ?? $_ENV[Str::upper($domain).'_'.Str::upper($key)]
+            ?? $default;
+    }
 
     /**
      * Execute the console command.
@@ -47,18 +47,21 @@ class ComponentListCommand extends Command
      */
     public function handle()
     {
-	    $this->requestComponents();
+        $spaceId = $this->getOptionWithFallbacks('space_id');
+        $componentsData = Components::make()
+            ->spaceId($spaceId)
+            ->all();
 
         $additionalFields = $this->option('additional-fields') ?
             Str::of($this->option('additional-fields'))->explode(',')
             : collect();
 
-        $rows = $this->sbComponents->map(function ($c) use ($additionalFields) {
+        $rows = $componentsData->getComponents()->map(function ($c) use ($additionalFields) {
             $mapped = [
                 'name' => $c['name'],
                 'display_name' => $c['display_name'],
-                'has_image' => $c['image'] ? "<fg=green>true</>" : '<fg=red>false</>',
-                'has_template' => $c['preview_tmpl'] ? "<fg=green>true</>" : '<fg=red>false</>',
+                'has_image' => $c['image'] ? '<fg=green>true</>' : '<fg=red>false</>',
+                'has_template' => $c['preview_tmpl'] ? '<fg=green>true</>' : '<fg=red>false</>',
             ];
 
             $mappedAdditional = collect($c)->only($additionalFields);
@@ -71,5 +74,4 @@ class ComponentListCommand extends Command
             $rows
         );
     }
-
 }
