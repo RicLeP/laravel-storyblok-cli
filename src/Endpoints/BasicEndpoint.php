@@ -13,6 +13,10 @@ class BasicEndpoint
         $this->client = new ManagementClient($token);
     }
 
+    public function mockable($array) {
+        $this->client->mockable($array);
+    }
+
     protected static function getToken($token = null)
     {
         return is_null($token) ? config('storyblok-cli.oauth_token') : $token;
