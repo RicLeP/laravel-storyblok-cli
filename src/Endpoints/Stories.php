@@ -38,8 +38,8 @@ class Stories extends BasicEndpoint
 	}
 
 	public function create($story): StoriesData {
-		if (is_array($story)) {
-			$story = json_encode($story);
+		if (!is_array($story)) {
+			$story = json_dcode($story, true);
 		}
 
 		return new StoriesData(
@@ -48,8 +48,8 @@ class Stories extends BasicEndpoint
 	}
 
 	public function update($id, $story): StoriesData {
-		if (is_array($story)) {
-			$story = json_encode($story);
+		if (!is_array($story)) {
+			$story = json_decode($story, true);
 		}
 
 		return new StoriesData(

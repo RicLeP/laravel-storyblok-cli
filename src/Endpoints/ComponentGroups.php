@@ -36,8 +36,8 @@ class ComponentGroups extends BasicEndpoint
     }
 
 	public function create($component): ComponentGroupsData {
-		if (is_array($component)) {
-			$component = json_encode($component);
+		if (!is_array($component)) {
+			$component = json_decode($component, true);
 		}
 
 		return new ComponentGroupsData(
@@ -46,8 +46,8 @@ class ComponentGroups extends BasicEndpoint
 	}
 
 	public function update($id, $component): ComponentGroupsData {
-		if (is_array($component)) {
-			$component = json_encode($component);
+		if (!is_array($component)) {
+			$component = json_decode($component, true
 		}
 
 		return new ComponentGroupsData(
