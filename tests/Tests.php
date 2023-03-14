@@ -1,5 +1,6 @@
 <?php
 
+use Riclep\StoryblokCli\Endpoints\Components;
 use Riclep\StoryblokCli\Endpoints\Spaces;
 use Riclep\StoryblokCli\Endpoints\Stories;
 
@@ -9,25 +10,28 @@ test('can get spaces', function () {
     $spaces->mockable([
         mockResponse('spaces'),
     ]);
+
     $spacesData = $spaces->all();
     expect($spacesData->getSpaces())->not()->toBeNull();
     expect($spacesData->getSpaces())->toHaveCount(2);
+
     $spaceValues = $spacesData->getSpaces();
     expect($spaceValues[0]['name'])->toEqual('Example Space 1');
     expect($spaceValues[1]['name'])->toEqual('Example Space 2');
 });
 
+
+
 test('can get a single story', function () {
-	$stories = Stories::make('dummy-token');
-	$stories->mockable([
+	$story = Stories::make('dummy-token');
+	$story->mockable([
 		mockResponse('stories/259645264'),
 	]);
 
-	$storiesData = $stories->byId(259645264);
+	$storyData = $story->byId(259645264);
 
-	expect($storiesData->getStory()['name'])->toEqual('Home');
+	expect($storyData->getStory()['name'])->toEqual('Home');
 });
-
 
 test('can get stories', function () {
 	$stories = Stories::make('dummy-token');
@@ -42,8 +46,6 @@ test('can get stories', function () {
 
 	expect($storiesData->getStories()[0]['name'])->toEqual('Test story');
 });
-
-
 
 test('can search stories', function () {
 	$stories = Stories::make('dummy-token');
@@ -103,15 +105,7 @@ test('can delete a story', function () {
 		mockResponse('stories/259645264'),
 	]);
 
-	$storiesData = $stories->update(259645264, [
-		'name' => 'Home',
-		'slug' => 'home',
-		'content' => [
-			'component' => 'page',
-			'body' => []
-		],
-		'publish' => 1
-	]);
+	$storiesData = $stories->delete(259645264);
 
 	expect($storiesData->getStory()['name'])->toEqual('Home');
 });
@@ -136,5 +130,100 @@ test('can unpublish a story', function () {
 	$storiesData = $stories->unpublish(259645264);
 
 	expect($storiesData->getStory()['name'])->toEqual('Home');
+});
+
+
+
+test('can get components for space', function () {
+	$components = Components::make('dummy-token');
+	$components->mockable([
+		mockResponse('components'),
+	]);
+
+	$componentsData = $components->all();
+
+	expect($componentsData->getComponents())->not()->toBeNull();
+	expect($componentsData->getComponents())->toHaveCount(5);
+	expect($componentsData->getComponents()[0]['name'])->toEqual('page');
+});
+
+test('can get component by ID', function () {
+	$components = Components::make('dummy-token');
+	$components->mockable([
+		mockResponse('components/2559045'),
+	]);
+
+	$componentData = $components->byId(2559045);
+
+	expect($componentData->getComponent()['name'])->toEqual('hero');
+});
+
+test('can create a component', function () {
+	$components = Components::make('dummy-token');
+	$components->mockable([
+		mockResponse('components/2559045'),
+	]);
+
+	$componentData = $components->create([
+		'component' => [
+			'name' => 'hero',
+			'display_name' => 'Hero',
+			'schema' => [
+				'title' => [
+					'type' => 'text',
+					'pos' => 0,
+				],
+				'image' => [
+					'type' => 'image',
+					'pos' => 1,
+				],
+			],
+			'is_root' => false,
+			'is_nestable' => true,
+		],
+	]);
+
+	expect($componentData->getComponent()['name'])->toEqual('hero');
+});
+
+test('can update a component', function () {
+	$components = Components::make('dummy-token');
+	$components->mockable([
+		mockResponse('components/2559045'),
+	]);
+
+	$componentData = $components->update(2559045, [
+		'component' => [
+			'name' => 'hero',
+			'display_name' => 'Hero',
+			'schema' => [
+				'title' => [
+					'type' => 'text',
+					'pos' => 0,
+				],
+				'image' => [
+					'type' => 'image',
+					'pos' => 1,
+				],
+			],
+			'is_root' => false,
+			'is_nestable' => true,
+		],
+	]);
+
+	expect($componentData->getComponent()['name'])->toEqual('hero');
+});
+
+test('can get component groups', function () {
+	$components = Components::make('dummy-token');
+	$components->mockable([
+		mockResponse('components'),
+	]);
+
+	$componentsData = $components->all();
+
+	expect($componentsData->getComponentGroups())->not()->toBeNull();
+	expect($componentsData->getComponentGroups())->toHaveCount(2);
+	expect($componentsData->getComponentGroups()[0]['name'])->toEqual('Body blocks');
 });
 

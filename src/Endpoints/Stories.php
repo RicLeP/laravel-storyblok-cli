@@ -57,6 +57,12 @@ class Stories extends BasicEndpoint
 		);
 	}
 
+	public function delete($id) {
+		return new StoriesData(
+			$this->client->delete('stories/' . $id)->getBody()
+		);
+	}
+
 	public function publish($id): StoriesData {
 		return new StoriesData(
 			$this->client->get('stories/' . $id . '/publish')->getBody()
