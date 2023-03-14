@@ -1,0 +1,43 @@
+{
+	"stories": [
+		{
+			"name": "Test story",
+			"parent_id": 150333250,
+			"created_at": "2022-12-08T10:52:14.535Z",
+			"deleted_at": null,
+			"group_id": "e8f97970-4d7a-4e81-9558-d280a04a8318",
+			"sort_by_date": null,
+			"updated_at": "2022-12-08T10:53:06.381Z",
+			"published_at": null,
+			"id": 231289560,
+			"uuid": "0c9c622d-4a69-45c3-9be5-01761c45256f",
+			"is_folder": false,
+			"published": false,
+			"slug": "test-story",
+			"path": null,
+			"full_slug": "news/test-story",
+			"position": -1740,
+			"unpublished_changes": true,
+			"is_startpage": false,
+			"pinned": false,
+			"publish_at": null,
+			"expire_at": null,
+			"first_published_at": null,
+			"release_ids": [],
+			"stage": null,
+			"alternates": [],
+			"default_root": null,
+			"disble_fe_editor": false,
+			"last_author": {
+				"id": 47689,
+				"userid": "RicLeP",
+				"friendly_name": "Richard Le Poidevin",
+				"avatar": "avatars/47689/6db4ea4a2b/bottle.jpg"
+			},
+			"content_summary": {},
+			"content_type": "news-article",
+			"tag_list": [],
+			"can_not_view": false
+		}
+	]
+}
