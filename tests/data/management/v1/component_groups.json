@@ -1,0 +1,14 @@
+{
+	"component_groups": [
+		{
+			"id": 58878,
+			"name": "Body blocks",
+			"uuid": "d3fce93d-2325-4dd9-bbe8-fe4500f4fede"
+		},
+		{
+			"id": 71961,
+			"name": "Content blocks",
+			"uuid": "d5ba0ea1-1896-4f6f-885d-7ea812fe2660"
+		}
+	]
+}

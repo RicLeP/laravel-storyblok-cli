@@ -1,5 +1,6 @@
 <?php
 
+use Riclep\StoryblokCli\Endpoints\ComponentGroups;
 use Riclep\StoryblokCli\Endpoints\Components;
 use Riclep\StoryblokCli\Endpoints\Spaces;
 use Riclep\StoryblokCli\Endpoints\Stories;
@@ -214,6 +215,20 @@ test('can update a component', function () {
 	expect($componentData->getComponent()['name'])->toEqual('hero');
 });
 
+test('can delete a component', function () {
+	$components = Components::make('dummy-token');
+	$components->mockable([
+		mockResponse('components/2559045'),
+	]);
+
+	$componentData = $components->delete(2559045);
+
+	expect($componentData->getComponent()['name'])->toEqual('hero');
+});
+
+
+
+
 test('can get component groups', function () {
 	$components = Components::make('dummy-token');
 	$components->mockable([
@@ -227,3 +242,67 @@ test('can get component groups', function () {
 	expect($componentsData->getComponentGroups()[0]['name'])->toEqual('Body blocks');
 });
 
+test('can get all component groups for space', function () {
+	$componentGroups = ComponentGroups::make('dummy-token');
+	$componentGroups->mockable([
+		mockResponse('component_groups'),
+	]);
+
+	$componentGroupsData = $componentGroups->all();
+
+	expect($componentGroupsData->getComponentGroups())->not()->toBeNull();
+	expect($componentGroupsData->getComponentGroups())->toHaveCount(2);
+	expect($componentGroupsData->getComponentGroups()[0]['name'])->toEqual('Body blocks');
+});
+
+test('can get component group by ID', function () {
+	$componentGroups = ComponentGroups::make('dummy-token');
+	$componentGroups->mockable([
+		mockResponse('component_groups/58878'),
+	]);
+
+	$componentGroupsData = $componentGroups->byId(58878);
+
+	expect($componentGroupsData->getComponentGroup()['name'])->toEqual('Body blocks');
+});
+
+test('can create a component group', function () {
+	$componentGroups = ComponentGroups::make('dummy-token');
+	$componentGroups->mockable([
+		mockResponse('component_groups/58878'),
+	]);
+
+	$componentGroupData = $componentGroups->create([
+		'component_group' => [
+			'name' => 'Body blocks'
+		],
+	]);
+
+	expect($componentGroupData->getComponentGroup()['name'])->toEqual('Body blocks');
+});
+
+test('can update a component group', function () {
+	$componentGroups = ComponentGroups::make('dummy-token');
+	$componentGroups->mockable([
+		mockResponse('component_groups/58878'),
+	]);
+
+	$componentGroupData = $componentGroups->update(58878, [
+		'component_group' => [
+			'name' => 'Body blocks'
+		],
+	]);
+
+	expect($componentGroupData->getComponentGroup()['name'])->toEqual('Body blocks');
+});
+
+test('can delete a component group', function () {
+	$componentGroups = ComponentGroups::make('dummy-token');
+	$componentGroups->mockable([
+		mockResponse('component_groups/58878'),
+	]);
+
+	$componentGroupData = $componentGroups->delete(58878);
+
+	expect($componentGroupData->getComponentGroup()['name'])->toEqual('Body blocks');
+});
