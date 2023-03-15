@@ -6,14 +6,9 @@ use Riclep\StoryblokCli\Data\ComponentsData;
 
 class Components extends BasicEndpoint
 {
-    private string $spaceId;
-
-
     public function __construct($token)
     {
 	    parent::__construct($token);
-
-	    $this->spaceId = config('storyblok-cli.space_id');
     }
 
     public static function make($token = null): self

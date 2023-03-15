@@ -6,14 +6,9 @@ use Riclep\StoryblokCli\Data\ComponentGroupsData;
 
 class ComponentGroups extends BasicEndpoint
 {
-    private string $spaceId;
-
-
     public function __construct($token)
     {
 	    parent::__construct($token);
-
-	    $this->spaceId = config('storyblok-cli.space_id');
     }
 
     public static function make($token = null): self
@@ -47,7 +42,7 @@ class ComponentGroups extends BasicEndpoint
 
 	public function update($id, $component): ComponentGroupsData {
 		if (!is_array($component)) {
-			$component = json_decode($component, true
+			$component = json_decode($component, true);
 		}
 
 		return new ComponentGroupsData(
@@ -60,11 +55,4 @@ class ComponentGroups extends BasicEndpoint
 			$this->client->delete('spaces/'.$this->spaceId.'/component_groups/' . $id)->getBody()
 		);
 	}
-
-    public function spaceId($spaceId): self
-    {
-        $this->spaceId = $spaceId;
-
-        return $this;
-    }
 }

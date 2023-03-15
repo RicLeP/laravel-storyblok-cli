@@ -16,6 +16,13 @@ class Spaces extends BasicEndpoint
         return new self(parent::getToken($token));
     }
 
+	public function byId($spaceId): SpacesData
+	{
+		return new SpacesData(
+			$this->client->get('spaces/' . $spaceId . '/')->getBody()
+		);
+	}
+
     public function all(): SpacesData
     {
         return new SpacesData(

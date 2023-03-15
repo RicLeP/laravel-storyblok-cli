@@ -19,21 +19,21 @@ class Stories extends BasicEndpoint
     public function byId($storyId): StoriesData
     {
         return new StoriesData(
-            $this->client->get('stories/' . $storyId)->getBody()
+            $this->client->get('spaces/'.$this->spaceId.'/stories/' . $storyId)->getBody()
         );
     }
 
 	public function all(): StoriesData
 	{
 		return new StoriesData(
-			$this->client->get('stories')->getBody()
+			$this->client->get('spaces/'.$this->spaceId.'/stories')->getBody()
 		);
 	}
 
 	public function search($search): StoriesData
 	{
 		return new StoriesData(
-			$this->client->get('stories/?text_search=' . urlencode($search))->getBody()
+			$this->client->get('spaces/'.$this->spaceId.'/stories/?text_search=' . urlencode($search))->getBody()
 		);
 	}
 
@@ -43,7 +43,7 @@ class Stories extends BasicEndpoint
 		}
 
 		return new StoriesData(
-			$this->client->post('stories', $story)->getBody()
+			$this->client->post('spaces/'.$this->spaceId.'/stories', $story)->getBody()
 		);
 	}
 
@@ -53,25 +53,25 @@ class Stories extends BasicEndpoint
 		}
 
 		return new StoriesData(
-			$this->client->put('stories/' . $id, $story)->getBody()
+			$this->client->put('spaces/'.$this->spaceId.'/stories/' . $id, $story)->getBody()
 		);
 	}
 
 	public function delete($id) {
 		return new StoriesData(
-			$this->client->delete('stories/' . $id)->getBody()
+			$this->client->delete('spaces/'.$this->spaceId.'/stories/' . $id)->getBody()
 		);
 	}
 
 	public function publish($id): StoriesData {
 		return new StoriesData(
-			$this->client->get('stories/' . $id . '/publish')->getBody()
+			$this->client->get('spaces/'.$this->spaceId.'/stories/' . $id . '/publish')->getBody()
 		);
 	}
 
 	public function unpublish($id): StoriesData {
 		return new StoriesData(
-			$this->client->get('stories/' . $id . '/unpublish')->getBody()
+			$this->client->get('spaces/'.$this->spaceId.'/stories/' . $id . '/unpublish')->getBody()
 		);
 	}
 }
