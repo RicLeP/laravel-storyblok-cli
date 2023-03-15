@@ -38,20 +38,12 @@ class Stories extends BasicEndpoint
 	}
 
 	public function create($story): StoriesData {
-		if (!is_array($story)) {
-			$story = json_dcode($story, true);
-		}
-
 		return new StoriesData(
 			$this->client->post('spaces/'.$this->spaceId.'/stories', $story)->getBody()
 		);
 	}
 
 	public function update($id, $story): StoriesData {
-		if (!is_array($story)) {
-			$story = json_decode($story, true);
-		}
-
 		return new StoriesData(
 			$this->client->put('spaces/'.$this->spaceId.'/stories/' . $id, $story)->getBody()
 		);

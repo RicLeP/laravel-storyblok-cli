@@ -31,20 +31,12 @@ class Components extends BasicEndpoint
     }
 
 	public function create($component): ComponentsData {
-		if (!is_array($component)) {
-			$component = json_decode($component, true);
-		}
-
 		return new ComponentsData(
 			$this->client->post('spaces/'.$this->spaceId.'/components/', $component)->getBody()
 		);
 	}
 
 	public function update($id, $component): ComponentsData {
-		if (!is_array($component)) {
-			$component = json_decode($component, true);
-		}
-
 		return new ComponentsData(
 			$this->client->put('spaces/'.$this->spaceId.'/components/' . $id, $component)->getBody()
 		);
@@ -55,11 +47,4 @@ class Components extends BasicEndpoint
 			$this->client->delete('spaces/'.$this->spaceId.'/components/' . $id)->getBody()
 		);
 	}
-
-    public function spaceId($spaceId): self
-    {
-        $this->spaceId = $spaceId;
-
-        return $this;
-    }
 }

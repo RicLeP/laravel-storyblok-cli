@@ -31,20 +31,12 @@ class ComponentGroups extends BasicEndpoint
     }
 
 	public function create($component): ComponentGroupsData {
-		if (!is_array($component)) {
-			$component = json_decode($component, true);
-		}
-
 		return new ComponentGroupsData(
 			$this->client->post('spaces/'.$this->spaceId.'/component_groups/', $component)->getBody()
 		);
 	}
 
 	public function update($id, $component): ComponentGroupsData {
-		if (!is_array($component)) {
-			$component = json_decode($component, true);
-		}
-
 		return new ComponentGroupsData(
 			$this->client->put('spaces/'.$this->spaceId.'/component_groups/' . $id, $component)->getBody()
 		);

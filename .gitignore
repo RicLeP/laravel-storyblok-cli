@@ -4,3 +4,4 @@ node_modules/
 .idea/
 composer.lock
 /build/
+coverage.xml
