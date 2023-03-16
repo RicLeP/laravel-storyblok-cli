@@ -5,20 +5,18 @@ namespace Riclep\StoryblokCli\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use JsonException;
-use Riclep\StoryblokCli\Traits\GetsComponents;
+use Riclep\StoryblokCli\Endpoints\Components;
 use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
 class DiffComponentCommand extends Command
 {
-	use GetsComponents;
-
 	/**
 	 * The name and signature of the console command.
 	 *
 	 * @var string
 	 */
-	protected $signature = 'ls:diff-component {file}';
+	protected $signature = 'ls:diff-component {component}';
 
 	/**
 	 * The console command description.
@@ -27,19 +25,11 @@ class DiffComponentCommand extends Command
 	 */
 	protected $description = 'Diff components from JSON definitions';
 
-	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
-
-	/**
-	 * @var ManagementClient
-	 */
-	protected ManagementClient $managementClient;
-
+	protected string $path = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
 
 	public function __construct()
 	{
 		parent::__construct();
-
-		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
 
 	/**
@@ -52,40 +42,51 @@ class DiffComponentCommand extends Command
 	public function handle(): int
 	{
 		//// TODO validate component JSON
-		if (!$this->argument('file')) {
-			$this->error('No component file specified');
+
+		if (!$this->argument('component')) {
+			$this->error('No component specified');
 			exit;
 		}
 
-		if (!Storage::exists($this->storagePath . $this->argument('file'))) {
-			$this->error('Component file not found: ' . $this->argument('file'));
-			exit;
-		}
-
-		$this->requestComponents();
-
-		$this->diff($this->storagePath . $this->argument('file'));
+		$this->diff($this->getLocalComponent(), $this->getRemoteComponent());
 
 		return Command::SUCCESS;
 	}
 
+	protected function getLocalComponent() {
+		$path = $this->path . $this->argument('component') . '.json';
+
+		if (!Storage::exists($path)) {
+			$this->error('Component file not found: ' . $path);
+			exit;
+		}
+
+		$localComponent = json_decode(Storage::get($path), true, 512, JSON_THROW_ON_ERROR);
+		unset($localComponent['created_at'], $localComponent['updated_at'], $localComponent['component_group_uuid']);
+
+		return $localComponent;
+	}
+
+	protected function getRemoteComponent() {
+		$components = Components::make()->all()->getComponents();
+
+		$remoteComponent = $components->firstWhere('name', $this->argument('component'));
+		unset($remoteComponent['created_at'], $remoteComponent['updated_at'], $remoteComponent['component_group_uuid']);
+
+		return $remoteComponent;
+	}
+
 	/**
-	 * @param $importSchema
+	 * @param $importComponent
 	 * @return void
 	 * @throws JsonException
 	 */
-	protected function diff($localComponent)
+	protected function diff($localComponent, $remoteComponent)
 	{
-		$localSchema = json_decode(Storage::get($localComponent), true, 512, JSON_THROW_ON_ERROR);
-		unset($localSchema['created_at'], $localSchema['updated_at'], $localSchema['component_group_uuid']);
-
-		$remoteSchema = $this->requestComponent($this->sbComponents->firstWhere('name', $localSchema['name'])['id']);
-		unset($remoteSchema['created_at'], $remoteSchema['updated_at'], $remoteSchema['component_group_uuid']);
-
 		$treeWalker = new \TreeWalker(['returntype' => 'array']);
 		$changes = $treeWalker->getdiff(
-			json_encode($localSchema, JSON_THROW_ON_ERROR),
-			json_encode($remoteSchema, JSON_THROW_ON_ERROR)
+			json_encode($localComponent, JSON_THROW_ON_ERROR),
+			json_encode($remoteComponent, JSON_THROW_ON_ERROR)
 		);
 
 		if (empty(array_filter($changes))) {

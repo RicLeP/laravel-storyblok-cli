@@ -30,10 +30,27 @@ class Stories extends BasicEndpoint
 		);
 	}
 
+	public function bySlug($slug, $withContent = true): StoriesData
+	{
+		$story = $this->client->get('spaces/'.$this->spaceId.'/stories/', [
+			'with_slug' => $slug
+		])->getBody();
+
+		if (!$withContent || !$story['stories']) {
+			return new StoriesData($story);
+		}
+
+		if ($story['stories']) {
+			return $this->byId($story['stories'][0]['id']);
+		}
+	}
+
 	public function search($search): StoriesData
 	{
 		return new StoriesData(
-			$this->client->get('spaces/'.$this->spaceId.'/stories/?text_search=' . urlencode($search))->getBody()
+			$this->client->get('spaces/'.$this->spaceId.'/stories/', [
+				'text_search' => urlencode($search)
+			])->getBody()
 		);
 	}
 

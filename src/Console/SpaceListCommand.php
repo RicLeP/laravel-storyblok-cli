@@ -45,11 +45,7 @@ class SpaceListCommand extends Command
      */
     public function handle()
     {
-        //$spaceId = $this->getOptionWithFallbacks('space_id');
-        $spacesData = Spaces::make()
-            ->all();
-
-        $spacesData->dump();
+        $spacesData = Spaces::make()->all();
 
         $rows = $spacesData->getSpaces()->map(function ($c) {
             return  [

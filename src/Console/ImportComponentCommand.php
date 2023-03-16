@@ -6,41 +6,33 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use JsonException;
-use Riclep\StoryblokCli\Traits\GetsComponents;
+use Riclep\StoryblokCli\Endpoints\ComponentGroups;
+use Riclep\StoryblokCli\Endpoints\Components;
 use Storyblok\ApiException;
 use Storyblok\ManagementClient;
 
 class ImportComponentCommand extends Command
 {
-	use GetsComponents;
-
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'ls:import-component {file?} {--as=} {--group=false}';
+    protected $signature = 'ls:import-component {file} {--as=} {--group=false}';
 
-	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
-
-    /**
+	/**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Import components from JSON definitions';
 
-	/**
-	 * @var ManagementClient
-	 */
-	protected ManagementClient $managementClient;
+	protected $path = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
 
 
 	public function __construct()
 	{
 		parent::__construct();
-
-		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
 
 	/**
@@ -52,21 +44,17 @@ class ImportComponentCommand extends Command
 	 */
     public function handle(): int
     {
-		//// TODO validate component JSON
-
 	    if (!$this->argument('file')) {
 		    $this->error('No component file specified');
 		    exit;
 	    }
 
-	    if (!Storage::exists($this->storagePath . $this->argument('file'))) {
+	    if (!Storage::exists($this->path . $this->argument('file'))) {
 		    $this->error('Component file not found: ' . $this->argument('file'));
 		    exit;
 	    }
 
-		$this->requestComponents();
-
-		$this->importComponent($this->argument('file'));
+	    $this->importComponent();
 
         return Command::SUCCESS;
     }
@@ -74,9 +62,11 @@ class ImportComponentCommand extends Command
 	/**
 	 * @throws JsonException|ApiException
 	 */
-	protected function importComponent($componentFile)
+	protected function importComponent()
 	{
-		$importSchema = json_decode(Storage::get($this->storagePath . $componentFile), true, 512, JSON_THROW_ON_ERROR);
+		$this->argument('file');
+
+		$importSchema = json_decode(Storage::get($this->path . $this->argument('file')), true, 512, JSON_THROW_ON_ERROR);
 		unset($importSchema['created_at'], $importSchema['updated_at']);
 
 		if ($this->option('as')) {
@@ -92,10 +82,11 @@ class ImportComponentCommand extends Command
 			$importSchema = $this->selectComponentGroup($importSchema);
 		}
 
-		if ($this->sbComponents->firstWhere('name', $importSchema['name'])) {
+		$components = Components::make()->all()->getComponents();
+
+		if ($components->firstWhere('name', $importSchema['name'])) {
 			return $this->updateComponent(
-				$this->sbComponents
-					->firstWhere('name', $importSchema['name'])['id'], $importSchema
+				$components->firstWhere('name', $importSchema['name'])['id'], $importSchema
 			);
 		} else {
 			return $this->createComponent($importSchema);
@@ -104,7 +95,7 @@ class ImportComponentCommand extends Command
 
 	protected function selectComponentGroup($importSchema)
 	{
-		$componentGroups = clone $this->sbComponentGroups;
+		$componentGroups = ComponentGroups::make()->all()->getComponentGroups();
 
 		$componentGroups->prepend([
 			'name' => '<fg=green>Root group</>',
@@ -127,7 +118,9 @@ class ImportComponentCommand extends Command
 			return $importSchema;
 		}
 
-		$group = $this->sbComponentGroups->filter(fn($group) => $group['name'] === $componentGroupName)->first();
+		$componentGroups = ComponentGroups::make()->all()->getComponentGroups();
+
+		$group = $componentGroups->filter(fn($group) => $group['name'] === $componentGroupName)->first();
 
 		$importSchema['component_group_uuid'] = $group['uuid'];
 
@@ -136,10 +129,14 @@ class ImportComponentCommand extends Command
 
 	protected function setComponentGroup($importSchema)
 	{
+		$componentGroups = ComponentGroups::make()->all()->getComponentGroups();
+
 		if (Str::isUuid($this->option('group'))) {
-			$group = $this->sbComponentGroups->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
+			$group = $componentGroups->filter(fn($group) => $group['uuid'] === $this->option('group'))->first();
+		} else if (is_numeric($this->option('group'))) {
+			$group = $componentGroups->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
 		} else {
-			$group = $this->sbComponentGroups->filter(fn($group) => $group['id'] === (int) $this->option('group'))->first();
+			$group = $componentGroups->filter(fn($group) => $group['name'] === $this->option('group'))->first();
 		}
 
 		if (!$group) {
@@ -156,14 +153,11 @@ class ImportComponentCommand extends Command
 	{
 		$componentGroupName = $this->ask('Enter new group name');
 
-		$this->managementClient->post('spaces/' . config('storyblok-cli.space_id') . '/component_groups',
-			[
-				'component_group' => [
-					'name' => $componentGroupName,
-				]
-			])->getBody();
-
-		$this->requestComponents();
+		$componentGroups = ComponentGroups::make()->create([
+			'component_group' => [
+				'name' => $componentGroupName,
+			]
+		]);
 
 		return $componentGroupName;
 	}
@@ -179,16 +173,15 @@ class ImportComponentCommand extends Command
 		$this->line('Use --as={name} to import as a new component');
 
 		$this->call('ls:diff-component', [
-			'file' => $this->argument('file'),
+			'component' => Str::of($this->argument('file'))->before('.json'),
 		]);
 
 		if ($this->confirm('Do you want to update the component in Storyblok?')) {
 			// TODO - add option to backup existing schema
 
-			$this->managementClient->put('spaces/' . config('storyblok-cli.space_id') . '/components/' . $componentId,
-				[
-					'component' => $importSchema
-				])->getBody();
+			$componentGroups = Components::make()->update($componentId, [
+				'component' => $importSchema
+			]);
 
 			$this->info('Component updated: ' . $importSchema['name']);
 		} else {
@@ -203,39 +196,10 @@ class ImportComponentCommand extends Command
 	 */
 	protected function createComponent($importSchema)
 	{
-		$this->managementClient->post('spaces/' . config('storyblok-cli.space_id') . '/components/', [
+		$componentGroups = Components::make()->create([
 			'component' => $importSchema
-		])->getBody();
+		]);
 
 		$this->info('Component created: ' . $importSchema['name']);
-	}
-
-	/**
-	 * @param $importSchema
-	 * @return void
-	 * @throws JsonException
-	 */
-	protected function hasChanges($importSchema)
-	{
-		$existingSchema = $this->requestComponent($this->sbComponents->firstWhere('name', $importSchema['name'])['id']);
-		unset($existingSchema['created_at'], $existingSchema['updated_at']);
-
-		$treeWalker = new \TreeWalker(['returntype' => 'array']);
-		$changes = $treeWalker->getdiff(
-			json_encode($importSchema, JSON_THROW_ON_ERROR),
-			json_encode($existingSchema, JSON_THROW_ON_ERROR)
-		);
-
-		if (empty(array_filter($changes))) {
-			$this->info('No changes found, import cancelled');
-
-			return false;
-		}
-
-		$this->line('');
-		$this->info('Changes found:');
-
-		dump($changes);
-		return true;
 	}
 }

@@ -14,10 +14,6 @@ test('returns empty collection when data does not exist', function () {
 		mockResponse('spaces/196985'),
 	]);
 
-	$spaceData = $spaces->byId(196985);
-
-	dd($spaceData->dump());
-
 	$spaceData = $spaces->byId(196985)->getCollectionFromResponse('not-here');
 
 	expect($spaceData)->not()->toBeNull();
