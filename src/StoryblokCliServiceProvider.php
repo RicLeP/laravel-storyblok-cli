@@ -9,7 +9,7 @@ use Riclep\StoryblokCli\Console\ExportStoryCommand;
 use Riclep\StoryblokCli\Console\ImportComponentCommand;
 use Riclep\StoryblokCli\Console\ImportStoryCommand;
 use Riclep\StoryblokCli\Console\ListComponentsCommand;
-use Riclep\StoryblokCli\Console\SpaceListCommand;
+use Riclep\StoryblokCli\Console\ListSpacesCommand;
 
 class StoryblokCliServiceProvider extends ServiceProvider
 {
@@ -25,7 +25,7 @@ class StoryblokCliServiceProvider extends ServiceProvider
 			ImportComponentCommand::class,
 			ImportStoryCommand::class,
 			ListComponentsCommand::class,
-			SpaceListCommand::class
+			ListSpacesCommand::class
 		]);
     }
 

@@ -9,7 +9,6 @@ use JsonException;
 use Riclep\StoryblokCli\Endpoints\ComponentGroups;
 use Riclep\StoryblokCli\Endpoints\Components;
 use Storyblok\ApiException;
-use Storyblok\ManagementClient;
 
 class ImportComponentCommand extends Command
 {

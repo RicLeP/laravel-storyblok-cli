@@ -3,7 +3,6 @@
 namespace Riclep\StoryblokCli\Exporters;
 
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class BasicExporter
 {

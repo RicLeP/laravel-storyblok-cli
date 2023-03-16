@@ -4,12 +4,9 @@ namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use JsonException;
-use Riclep\StoryblokCli\Data\ComponentsData;
 use Riclep\StoryblokCli\Endpoints\Components;
 use Riclep\StoryblokCli\Exporters\ComponentExporter;
-use Storyblok\ManagementClient;
 
 class ExportComponentCommand extends Command
 {

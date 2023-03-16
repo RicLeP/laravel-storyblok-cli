@@ -6,14 +6,14 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Riclep\StoryblokCli\Endpoints\Spaces;
 
-class SpaceListCommand extends Command
+class ListSpacesCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'ls:space-list';
+    protected $signature = 'ls:list-spaces';
 
     /**
      * The console command description.

@@ -5,7 +5,6 @@ namespace Riclep\StoryblokCli\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Riclep\StoryblokCli\Endpoints\Stories;
-use Storyblok\ManagementClient;
 
 class ImportStoryCommand extends Command
 {

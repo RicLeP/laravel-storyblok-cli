@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Storage;
 use JsonException;
 use Riclep\StoryblokCli\Endpoints\Components;
 use Storyblok\ApiException;
-use Storyblok\ManagementClient;
 
 class DiffComponentCommand extends Command
 {
@@ -96,8 +95,19 @@ class DiffComponentCommand extends Command
 		}
 
 		$this->line('');
-		$this->info('Changes found:');
+		$this->line('Changes found:');
+		$this->line('');
 
-		dump($changes);
+		foreach ($changes['new'] as $key => $change) {
+			$this->line( '+<fg=green>' . str_replace('schema/', '', $key) . ': ' . $change . '</>');
+		}
+
+		foreach ($changes['removed'] as $key => $change) {
+			$this->line('-<fg=red>' . str_replace('schema/', '', $key) . ': ' . $change . '</>');
+		}
+
+		foreach ($changes['edited'] as $key => $change) {
+			$this->line(str_replace('schema/', '', $key) . ': -<fg=red>' . $change['oldvalue'] . '</>' . ' +<fg=green>' . $change['newvalue'] . '</>');
+		}
 	}
 }

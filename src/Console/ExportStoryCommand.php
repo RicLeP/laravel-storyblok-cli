@@ -3,11 +3,8 @@
 namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Riclep\StoryblokCli\Endpoints\Stories;
 use Riclep\StoryblokCli\Exporters\StoryExporter;
-use Storyblok\ManagementClient;
 
 class ExportStoryCommand extends Command
 {
