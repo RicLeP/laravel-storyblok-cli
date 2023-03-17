@@ -21,7 +21,7 @@
     ],
     "require": {
         "php": "^8.0",
-	    "lukascivil/treewalker": "^0.9.1",
+	    "lukascivil/treewalker": "^0.41.0",
 	    "storyblok/php-client": "^2.2"
     },
     "autoload": {
