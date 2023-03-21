@@ -54,7 +54,7 @@
 	},
     "require-dev": {
         "orchestra/testbench": "^7.0|^8.0",
-        "pestphp/pest": "^1.22",
+        "pestphp/pest": "^2.0",
         "pestphp/pest-plugin-laravel": "^1.4"
     }
 }
