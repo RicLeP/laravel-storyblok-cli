@@ -35,12 +35,15 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
-        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage-html coverage"
 
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
 	"extra": {
 		"laravel": {
@@ -48,5 +51,10 @@
 				"Riclep\\StoryblokCli\\StoryblokCliServiceProvider"
 			]
 		}
-	}
+	},
+    "require-dev": {
+        "orchestra/testbench": "^7.0|^8.0",
+        "pestphp/pest": "^1.22",
+        "pestphp/pest-plugin-laravel": "^1.4"
+    }
 }

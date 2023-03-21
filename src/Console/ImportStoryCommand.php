@@ -4,7 +4,7 @@ namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Storyblok\ManagementClient;
+use Riclep\StoryblokCli\Endpoints\Stories;
 
 class ImportStoryCommand extends Command
 {
@@ -13,7 +13,7 @@ class ImportStoryCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ls:import-story {filename} {slug}';
+    protected $signature = 'ls:import-story {file} {slug} {--P|publish}';
 
     /**
      * The console command description.
@@ -22,7 +22,7 @@ class ImportStoryCommand extends Command
      */
     protected $description = 'Import a story from JSON - it will be created in your space’s root';
 
-	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'stories' . DIRECTORY_SEPARATOR;
+	protected string $path = 'storyblok' . DIRECTORY_SEPARATOR . 'stories' . DIRECTORY_SEPARATOR;
 
 	/**
 	 * Create a new command instance.
@@ -31,8 +31,6 @@ class ImportStoryCommand extends Command
 	 */
 	public function __construct()
 	{
-		$this->client = new ManagementClient(config('storyblok-cli.oauth_token'));
-
 		parent::__construct();
 	}
 
@@ -43,29 +41,46 @@ class ImportStoryCommand extends Command
      */
     public function handle()
     {
-		// TODO - interactive console for selecting save folder?
+		// TODO - interactive console for selecting save folder? Too complex?
+	    // TODO - allow using slug from local JSON file
+	    // TODO - import nested slugs
+	    // TODO - allow updating stories
+	    // TODO - validate story JSON
 
-	    $storyExists = $this->client->get('spaces/' . config('storyblok-cli.space_id') . '/stories/', [
-			'with_slug' => $this->argument('slug')
-	    ])->getBody()['stories'];
+	    if (!$this->argument('file')) {
+		    $this->error('No component file specified');
+		    exit;
+	    }
 
-		if (!$storyExists) {
-			$source = json_decode(Storage::get($this->storagePath . $this->argument('filename')), true);
+	    if (!Storage::exists($this->path . $this->argument('file'))) {
+		    $this->error('Story file not found: ' . $this->argument('file'));
+		    exit;
+	    }
 
-			$story = [
-				"story" =>  [
-					"name" => $source['story']['name'] . ' (Imported)',
-					"slug" => $this->argument('slug'),
-					"content" => $source['story']['content'],
-				],
-				"publish" =>  1
-			];
 
-			$importedStory = $this->client->post('spaces/' . config('storyblok-cli.space_id') . '/stories/', $story)->getBody()['story'];
+	    try {
+		    $remoteStory = Stories::make()->bySlug($this->argument('slug'), true)->getStory();
+	    } catch (\Exception $e) {
+		    $remoteStory = null;
+	    }
 
-			$this->info('Imported into Storyblok: ' . $importedStory['name']);
-		} else {
-			$this->warn('Story already exists for: ' . $this->argument('slug'));
-		}
+	    if (!$remoteStory) {
+		    $source = json_decode(Storage::get($this->path . $this->argument('file')), true);
+
+		    $story = [
+			    "story" =>  [
+				    "name" => $source['name'] . ' (Imported)',
+				    "slug" => $this->argument('slug'),
+				    "content" => $source['content'],
+			    ],
+			    "publish" =>  $this->option('publish')
+		    ];
+
+		    $importedStory = Stories::make()->create($story);
+
+		    $this->info('Imported into Storyblok: ' . $source['name'] . ' (Imported)');
+	    } else {
+			$this->error('Story already exists in your space.');
+	    }
     }
 }

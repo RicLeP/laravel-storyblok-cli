@@ -3,9 +3,8 @@
 namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Storyblok\ManagementClient;
+use Riclep\StoryblokCli\Endpoints\Stories;
+use Riclep\StoryblokCli\Exporters\StoryExporter;
 
 class ExportStoryCommand extends Command
 {
@@ -23,8 +22,6 @@ class ExportStoryCommand extends Command
      */
     protected $description = 'Save a story as JSON';
 
-	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'stories' . DIRECTORY_SEPARATOR;
-
 	/**
 	 * Create a new command instance.
 	 *
@@ -32,8 +29,6 @@ class ExportStoryCommand extends Command
 	 */
 	public function __construct()
 	{
-		$this->client = new ManagementClient(config('storyblok-cli.oauth_token'));
-
 		parent::__construct();
 	}
 
@@ -44,29 +39,41 @@ class ExportStoryCommand extends Command
      */
     public function handle()
     {
-	    $storyExists = $this->client->get('spaces/' . config('storyblok-cli.space_id') . '/stories/', [
-			'with_slug' => $this->argument('slug')
-	    ])->getBody()['stories'];
+	    if (!$this->argument('slug')) {
+		    $this->error('No slug specified.');
+	    }
 
-	    if ($storyExists) {
-			$filename = Str::of($this->argument('slug'))->replace('/', '-')->slug() . '.json';
+	    if (is_numeric($this->argument('slug'))) {
+		    try {
+		       $storyData = Stories::make()->byId($this->argument('slug'))->getStory();
+		    } catch (\Exception $e) {
+			    $this->error($e->getMessage());
 
-			if (Storage::exists($this->storagePath . $filename)) {
-				if (!$this->confirm($filename . ' already exists. Do you want to overwrite it?')) {
-					$this->info('Component not exported.');
-					exit;
-				}
-			}
+			    exit;
+		    }
+	    } else {
+		    try {
+			    $storyData = Stories::make()->bySlug($this->argument('slug'), true)->getStory();
+		    } catch (\Exception $e) {
+			    $this->error($e->getMessage());
 
-			$story = $this->client->get('spaces/' . config('storyblok-cli.space_id') . '/stories/' . $storyExists[0]['id'])->getBody();
+			    exit;
+		    }
+	    }
 
-			$json = json_encode($story, JSON_PRETTY_PRINT);
+	    $storyExporter = new StoryExporter($storyData->toArray());
 
-			Storage::put($this->storagePath . $filename, $json);
+	    if ($storyExporter->exists()) {
+		    if (!$this->confirm($storyExporter->getFilename() . ' already exists. Do you want to overwrite it?')) {
+			    $this->info('Story not exported.');
+			    exit;
+		    }
+	    }
 
-			$this->info('Saved to storage: ' . $filename);
-		} else {
-			$this->warn('There is no story for your slug: ' . $this->argument('slug'));
-		}
+	    if ($storyExporter->save()) {
+		    $this->info('Story exported to storage: ' . $storyExporter->getPath() . $storyExporter->getFilename());
+	    } else {
+		    $this->error('Story not exported.');
+	    }
     }
 }
