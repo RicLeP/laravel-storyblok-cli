@@ -1,0 +1,78 @@
+{
+	"story": {
+		"name": "Home",
+		"parent_id": 0,
+		"group_id": "135224d5-16bb-4581-811d-242670a35211",
+		"alternates": [],
+		"created_at": "2023-02-09T16:00:22.366Z",
+		"deleted_at": null,
+		"sort_by_date": null,
+		"tag_list": [],
+		"updated_at": "2023-02-09T16:00:22.366Z",
+		"published_at": null,
+		"id": 259645264,
+		"uuid": "7f2a68e9-00c0-4e2a-8ff9-beb13c5d8d8f",
+		"is_folder": false,
+		"content": {
+			"_uid": "2a3f8401-768f-41f5-8286-e12ac75d4c08",
+			"body": [
+				{
+					"_uid": "e69d814a-0c65-48d2-a59a-75ba8610e10d",
+					"headline": "Hello world!",
+					"component": "teaser"
+				},
+				{
+					"_uid": "28aea488-7976-420f-8251-e9d6ed5c3d27",
+					"columns": [
+						{
+							"_uid": "c2bb77bd-6a8e-40de-a9a8-e3e4cf5f8e96",
+							"name": "Feature 1",
+							"component": "feature"
+						},
+						{
+							"_uid": "52c79a33-5868-4b21-9414-0fd1482a587d",
+							"name": "Feature 2",
+							"component": "feature"
+						},
+						{
+							"_uid": "f25b0a86-588f-46be-b4b0-f0c3f0da546b",
+							"name": "Feature 3",
+							"component": "feature"
+						}
+					],
+					"component": "grid"
+				}
+			],
+			"component": "page"
+		},
+		"published": false,
+		"slug": "home",
+		"path": null,
+		"full_slug": "home",
+		"default_root": null,
+		"disble_fe_editor": false,
+		"parent": null,
+		"is_startpage": false,
+		"unpublished_changes": false,
+		"meta_data": null,
+		"imported_at": null,
+		"preview_token": {
+			"token": "fd8ddccd12c1268204c8c934fb03f2f5c53225de",
+			"timestamp": "1676647043"
+		},
+		"pinned": false,
+		"breadcrumbs": [],
+		"publish_at": null,
+		"expire_at": null,
+		"first_published_at": null,
+		"last_author": null,
+		"user_ids": [],
+		"space_role_ids": [],
+		"translated_slugs": [],
+		"localized_paths": [],
+		"position": 0,
+		"translated_stories": [],
+		"can_not_view": false,
+		"is_scheduled": null
+	}
+}

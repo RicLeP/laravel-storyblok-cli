@@ -3,3 +3,5 @@ node_modules/
 .phpunit.result.cache
 .idea/
 composer.lock
+/build/
+coverage.xml

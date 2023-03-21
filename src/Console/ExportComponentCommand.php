@@ -3,15 +3,13 @@
 namespace Riclep\StoryblokCli\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Collection;
 use JsonException;
-use Riclep\StoryblokCli\Traits\GetsComponents;
-use Storyblok\ManagementClient;
+use Riclep\StoryblokCli\Endpoints\Components;
+use Riclep\StoryblokCli\Exporters\ComponentExporter;
 
 class ExportComponentCommand extends Command
 {
-	use GetsComponents;
-
     /**
      * The name and signature of the console command.
      *
@@ -26,18 +24,10 @@ class ExportComponentCommand extends Command
      */
     protected $description = 'Export the JSON for components';
 
-	protected $storagePath = 'storyblok' . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
-
-	/**
-	 * @var ManagementClient
-	 */
-	protected ManagementClient $managementClient;
 
 	public function __construct()
 	{
 		parent::__construct();
-
-		$this->managementClient = new ManagementClient(config('storyblok-cli.oauth_token'));
 	}
 
 	/**
@@ -48,58 +38,59 @@ class ExportComponentCommand extends Command
 	 */
     public function handle(): int
     {
-		$this->requestComponents();
+	    $components = Components::make()->all()->getComponents();
 
-		if ($this->option('all')) {
-			$this->exportAllComponents();
-		} else {
-			$selectedComponent = $this->argument('component') ?: $this->selectComponent();
+	    if ($this->option('all')) {
+		    $this->exportAllComponents($components);
+	    } else {
+		    $selectedComponent = $this->argument('component') ?: $this->selectComponent($components);
 
-			$this->exportComponent($selectedComponent);
-		}
+		    $this->exportComponent($components, $selectedComponent);
+	    }
 
-        return Command::SUCCESS;
+	    return Command::SUCCESS;
     }
 
-	protected function selectComponent() {
+	protected function selectComponent(Collection $components) {
 		return $this->choice(
 			'Select components to export',
-			$this->sbComponents->pluck('name')->toArray()
+			$components->pluck('name')->toArray()
 		);
 	}
+
 
 	/**
 	 * @throws JsonException
 	 */
-	protected function exportComponent($componentName)
+	protected function exportComponent($components, $componentName, $overwrite = false)
 	{
-		$component = $this->sbComponents->filter(fn($value) => $value['name'] === $componentName)->first();
+		$component = $components->filter(fn($value) => $value['name'] === $componentName)->first();
 
 		if (!$component) {
 			$this->error('Component ' . $componentName . ' not found');
 			exit;
 		}
 
-		if (Storage::exists($this->storagePath . $componentName . '.json') && !$this->option('all')) {
-			if (!$this->confirm($componentName . '.json already exists. Do you want to overwrite it?')) {
+		$componentExporter = new ComponentExporter($component);
+
+		if ($componentExporter->exists() && !$overwrite) {
+			if (!$this->confirm($componentExporter->getFilename() . ' already exists. Do you want to overwrite it?')) {
 				$this->info('Component not exported.');
 				exit;
 			}
 		}
 
-		Storage::put($this->storagePath . $componentName . '.json', json_encode($component, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-
-		$this->info('Saved to storage: ' . $componentName . '.json');
-
-		return $component;
+		if ($componentExporter->save()) {
+			$this->info('Component exported to storage: ' . $componentExporter->getPath() . $componentExporter->getFilename());
+		} else {
+			$this->error('Component not exported.');
+		}
 	}
 
-	protected function exportAllComponents()
+	protected function exportAllComponents($components)
 	{
 		if ($this->confirm('This will overwrite previously exported components. Do you want to continue?')) {
-			$this->sbComponents->each(function ($component) {
-				$this->exportComponent($component['name']);
-			});
+			$components->each(fn ($component) => $this->exportComponent($components, $component['name'], true));
 		}
 	}
 }

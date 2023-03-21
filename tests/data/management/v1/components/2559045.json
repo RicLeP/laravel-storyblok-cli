@@ -1,0 +1,88 @@
+{
+	"component": {
+		"name": "hero",
+		"display_name": null,
+		"created_at": "2022-06-15T10:40:15.396Z",
+		"updated_at": "2022-06-15T10:40:15.396Z",
+		"id": 2559045,
+		"schema": {
+			"image": {
+				"type": "asset",
+				"filetypes": [
+					"images"
+				],
+				"asset_folder_id": 131701,
+				"pos": 0
+			},
+			"title": {
+				"type": "text",
+				"pos": 1
+			},
+			"section_title": {
+				"type": "text",
+				"pos": 2
+			},
+			"buttons": {
+				"type": "bloks",
+				"maximum": "",
+				"restrict_components": true,
+				"component_whitelist": [
+					"button"
+				],
+				"pos": 3
+			},
+			"tab-7426d963-224c-48e0-8d93-017b4e8e416d": {
+				"type": "tab",
+				"display_name": "Style",
+				"keys": [
+					"height",
+					"image_size"
+				],
+				"pos": 4
+			},
+			"height": {
+				"type": "option",
+				"use_uuid": true,
+				"exclude_empty_option": true,
+				"options": [
+					{
+						"value": "short",
+						"name": "Short"
+					},
+					{
+						"value": "tall",
+						"name": "Tall"
+					}
+				],
+				"pos": 5
+			},
+			"image_size": {
+				"type": "option",
+				"use_uuid": true,
+				"exclude_empty_option": true,
+				"options": [
+					{
+						"value": "half",
+						"name": "Half"
+					},
+					{
+						"value": "full",
+						"name": "Full"
+					}
+				],
+				"pos": 6
+			}
+		},
+		"image": null,
+		"preview_field": null,
+		"is_root": false,
+		"preview_tmpl": "<div>{{title}}</div>\n\n{{image(options.image.filename)/}} ",
+		"is_nestable": true,
+		"all_presets": [],
+		"preset_id": null,
+		"real_name": "hero",
+		"component_group_uuid": "d3fce93d-2325-4dd9-bbe8-fe4500f4fede",
+		"color": null,
+		"icon": null
+	}
+}
