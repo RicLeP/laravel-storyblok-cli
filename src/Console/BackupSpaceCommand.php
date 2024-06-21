@@ -60,7 +60,7 @@ class BackupSpaceCommand extends Command
 
         foreach ($stories as $story) {
             $storyDetail = Stories::make()->byId($story['id'])->getStory();
-            $this->saveToDisk($this->option('output-dir') . '/stories', $story['id'] . '.json', $storyDetail);
+            $this->saveJsonToDisk($this->option('output-dir') . '/stories', $story['id'] . '.json', $storyDetail);
 
             if ($this->option('details')) {
                 $this->output->writeln('Backed up story: ' . $story['id']);
@@ -72,7 +72,7 @@ class BackupSpaceCommand extends Command
         $components = Components::make()->all()->getComponents();
 
         foreach ($components as $component) {
-            $this->saveToDisk($this->option('output-dir') . '/components', $component['id'] . '.json', $component);
+            $this->saveJsonToDisk($this->option('output-dir') . '/components', $component['id'] . '.json', $component);
 
             if ($this->option('details')) {
                 $this->output->writeln('Backed up component: ' . $component['id']);
@@ -84,7 +84,7 @@ class BackupSpaceCommand extends Command
         $componentGroups = ComponentGroups::make()->all()->getComponentGroups();
 
         foreach ($componentGroups as $componentGroup) {
-            $this->saveToDisk($this->option('output-dir') . '/component-groups', $componentGroup['id'] . '.json', $componentGroup);
+            $this->saveJsonToDisk($this->option('output-dir') . '/component-groups', $componentGroup['id'] . '.json', $componentGroup);
 
             if ($this->option('details')) {
                 $this->output->writeln('Backed up component group: ' . $componentGroup['id']);
@@ -96,7 +96,7 @@ class BackupSpaceCommand extends Command
         $assets = Assets::make()->all()->getAssets();
 
         foreach ($assets as $asset) {
-            $this->saveToDisk($this->option('output-dir') . '/assets', $asset['id'] . '.json', $asset);
+            $this->saveJsonToDisk($this->option('output-dir') . '/assets', $asset['id'] . '.json', $asset);
 
             if ($this->option('details')) {
                 $this->output->writeln('Backed up asset json: ' . $asset['id']);
@@ -104,11 +104,18 @@ class BackupSpaceCommand extends Command
 
             if ($this->option('with-assets')) {
                 $extension = pathinfo($asset['filename'], PATHINFO_EXTENSION);
+
                 $response = Http::get($asset['filename']);
-                $this->saveToDisk($this->option('output-dir') . '/assets', $asset['id'] . '.' . $extension, $response->body());
+
+                if($response->successful()) {
+                    Storage::disk('local')->put($this->option('output-dir') . '/assets/' . $asset['id'] . '.' . $extension, $response->body());
+                } else {
+                    $this->output->writeln('Failed to download asset file: ' . $asset['id']);
+                }
 
                 if ($this->option('details')) {
                     $this->output->writeln('Backed up asset file: ' . $asset['id']);
+                    $this->output->writeln('Asset file URL: ' . $asset['filename']);
                 }
             }
         }
@@ -118,7 +125,7 @@ class BackupSpaceCommand extends Command
         $assetFolders = AssetFolders::make()->all()->getAssetFolders();
 
         foreach ($assetFolders as $assetFolder) {
-            $this->saveToDisk($this->option('output-dir') . '/asset-folders', $assetFolder['id'] . '.json', $assetFolder);
+            $this->saveJsonToDisk($this->option('output-dir') . '/asset-folders', $assetFolder['id'] . '.json', $assetFolder);
 
             if ($this->option('details')) {
                 $this->output->writeln('Backed up asset folder: ' . $assetFolder['id']);
@@ -126,7 +133,7 @@ class BackupSpaceCommand extends Command
         }
     }
 
-    protected function saveToDisk($outputDir, $fileName, $data) {
+    protected function saveJsonToDisk($outputDir, $fileName, $data) {
         Storage::disk('local')->put($outputDir . '/' . $fileName, json_encode($data));
     }
 

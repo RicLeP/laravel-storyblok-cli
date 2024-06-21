@@ -25,8 +25,28 @@ class Assets extends BasicEndpoint
 
     public function all(): AssetsData
     {
-        return new AssetsData(
-            $this->client->get('spaces/'.$this->spaceId.'/assets/')->getBody()
-        );
+        $response = $this->client->get('spaces/'.$this->spaceId.'/assets');
+
+        $headers = $response->getHeaders();
+        $perPage = $headers['Per-Page'][0];
+        $total = $headers['Total'][0];
+
+        $assets = $response->getBody()['assets'];
+
+        if ($perPage < $total) {
+            $pages = ceil($total / $perPage);
+
+            for ($i = 2; $i <= $pages; $i++) {
+                $response = $this->client->get('spaces/'.$this->spaceId.'/assets', [
+                    'page' => $i
+                ]);
+
+                $assets = array_merge($assets, $response->getBody()['assets']);
+            }
+        }
+
+        return new AssetsData([
+            'assets' => $assets
+        ]);
     }
 }

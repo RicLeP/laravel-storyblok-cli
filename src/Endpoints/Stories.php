@@ -25,9 +25,31 @@ class Stories extends BasicEndpoint
 
 	public function all(): StoriesData
 	{
-		return new StoriesData(
-			$this->client->get('spaces/'.$this->spaceId.'/stories')->getBody()
-		);
+        $response = $this->client->get('spaces/'.$this->spaceId.'/stories', [
+            'per_page' => '100' // max allowed by API
+        ]);
+
+        $headers = $response->getHeaders();
+        $perPage = $headers['Per-Page'][0];
+        $total = $headers['Total'][0];
+
+        $stories = $response->getBody()['stories'];
+
+        if ($perPage < $total) {
+            $pages = ceil($total / $perPage);
+
+            for ($i = 2; $i <= $pages; $i++) {
+                $response = $this->client->get('spaces/'.$this->spaceId.'/stories', [
+                    'page' => $i
+                ]);
+
+                $stories = array_merge($stories, $response->getBody()['stories']);
+            }
+        }
+
+        return new StoriesData([
+            'stories' => $stories
+        ]);
 	}
 
 	public function bySlug($slug, $withContent = true): StoriesData
