@@ -23,6 +23,13 @@ class Assets extends BasicEndpoint
         );
     }
 
+    public function byFolderId($folderId): AssetsData
+    {
+        return new AssetsData(
+            $this->client->get('spaces/'.$this->spaceId.'/assets', ['in_folder' => $folderId])->getBody()
+        );
+    }
+	
     public function all(): AssetsData
     {
         $response = $this->client->get('spaces/'.$this->spaceId.'/assets');
