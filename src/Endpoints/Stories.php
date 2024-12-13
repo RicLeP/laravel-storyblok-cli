@@ -40,7 +40,8 @@ class Stories extends BasicEndpoint
 
             for ($i = 2; $i <= $pages; $i++) {
                 $response = $this->client->get('spaces/'.$this->spaceId.'/stories', [
-                    'page' => $i
+                    'page' => $i,
+		    'per_page' => '100' // max allowed by API
                 ]);
 
                 $stories = array_merge($stories, $response->getBody()['stories']);
