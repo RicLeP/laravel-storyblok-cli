@@ -11,6 +11,7 @@ use Riclep\StoryblokCli\Console\ImportComponentCommand;
 use Riclep\StoryblokCli\Console\ImportStoryCommand;
 use Riclep\StoryblokCli\Console\ListComponentsCommand;
 use Riclep\StoryblokCli\Console\ListSpacesCommand;
+use Riclep\StoryblokCli\Console\MergeComponentFieldsCommand;
 
 class StoryblokCliServiceProvider extends ServiceProvider
 {
@@ -27,7 +28,8 @@ class StoryblokCliServiceProvider extends ServiceProvider
 			ImportComponentCommand::class,
 			ImportStoryCommand::class,
 			ListComponentsCommand::class,
-			ListSpacesCommand::class
+			ListSpacesCommand::class,
+            MergeComponentFieldsCommand::class,
 		]);
     }
 
